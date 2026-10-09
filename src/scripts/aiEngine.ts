@@ -337,8 +337,9 @@ function analyzeComponents(board: FastBoard): BoardComponents {
     let currBox = b;
     let prevLine = openLine0;
 
+    let safety1 = 0;
     // Walk through connected 2-sided boxes
-    while (true) {
+    while (safety1++ < board.M) {
       // Find the neighbor box across prevLine
       const b0 = board.lineAdjBoxes[prevLine * 2];
       const b1 = board.lineAdjBoxes[prevLine * 2 + 1];
@@ -414,7 +415,8 @@ function analyzeComponents(board: FastBoard): BoardComponents {
     let prevLine = opens[0];
     const compLines: number[] = [opens[0]];
 
-    while (true) {
+    let safety2 = 0;
+    while (safety2++ < board.M) {
       const b0 = board.lineAdjBoxes[prevLine * 2];
       const b1 = board.lineAdjBoxes[prevLine * 2 + 1];
       const nextBox = (b0 === currBox) ? b1 : b0;
@@ -579,8 +581,9 @@ function traceChainLengthFromBox(board: FastBoard, startBox: number, excludeLine
   let prevLine = excludeLine;
 
   const visited = new Set<number>([startBox]);
+  let safety = 0;
 
-  while (true) {
+  while (safety++ < board.M) {
     const opens = getBoxOpenLines(board, currBox).filter(l => l !== prevLine && l !== excludeLine);
     if (opens.length !== 1) break;
 
@@ -737,7 +740,11 @@ function evaluateBoard(board: FastBoard, aiPlayer: PlayerId): number {
   return score;
 }
 
-// ─── Minimax Search with Alpha-Beta Pruning ──────────────────────────────────
+// ─── Minimax Search with Alpha-Beta Pruning & Timeout Safety ─────────────────
+
+let searchDeadline = 0;
+let searchNodeCount = 0;
+let searchTimedOut = false;
 
 function minimax(
   board: FastBoard,
@@ -747,11 +754,19 @@ function minimax(
   aiPlayer: PlayerId,
   allowDoubleCross: boolean = true
 ): number {
+  searchNodeCount++;
+  if ((searchNodeCount & 255) === 0) {
+    if (Date.now() > searchDeadline) {
+      searchTimedOut = true;
+      return evaluateBoard(board, aiPlayer);
+    }
+  }
+
   if (board.remainingLines === 0 || board.p1Score + board.p2Score === board.M) {
     return evaluateBoard(board, aiPlayer);
   }
 
-  if (depth <= 0) {
+  if (depth <= 0 || searchTimedOut) {
     return evaluateBoard(board, aiPlayer);
   }
 
@@ -774,11 +789,12 @@ function minimax(
   if (isMaximizing) {
     let maxEval = -Infinity;
     for (const line of orderedLines) {
+      if (searchTimedOut) break;
       const prevPlayer = board.currentPlayer;
       const scored = board.makeMove(line);
 
-      // In Dots & Boxes, scoring gives another turn
-      const nextDepth = scored > 0 ? depth : depth - 1;
+      // In Dots & Boxes, scoring gives another turn; decrement depth after 1st chain ply to avoid runaway recursion
+      const nextDepth = scored > 0 ? (depth > 2 ? depth - 1 : depth) : depth - 1;
       const evalScore = minimax(board, nextDepth, alpha, beta, aiPlayer, allowDoubleCross);
 
       board.undoMove(line, scored, prevPlayer);
@@ -802,10 +818,11 @@ function minimax(
   } else {
     let minEval = Infinity;
     for (const line of orderedLines) {
+      if (searchTimedOut) break;
       const prevPlayer = board.currentPlayer;
       const scored = board.makeMove(line);
 
-      const nextDepth = scored > 0 ? depth : depth - 1;
+      const nextDepth = scored > 0 ? (depth > 2 ? depth - 1 : depth) : depth - 1;
       const evalScore = minimax(board, nextDepth, alpha, beta, aiPlayer, allowDoubleCross);
 
       board.undoMove(line, scored, prevPlayer);
@@ -833,34 +850,46 @@ function minimax(
 
 function getAdaptiveSearchDepth(board: FastBoard): number {
   const rem = board.remainingLines;
-  // Exact Endgame Solver: if <= 14 lines remain or 3x3 dots grid, solve completely
-  if (rem <= 14 || board.N <= 3) {
-    return rem;
+  const N = board.N;
+
+  // Exact Endgame Solver:
+  // For small boards (3x3 dots) or when few lines remain
+  if (N <= 3) return Math.min(rem, 12);
+  if (N === 4) {
+    if (rem <= 10) return rem;
+    if (rem <= 14) return 6;
+    return 4;
   }
-  if (rem <= 18) return 8;
-  if (rem <= 24) return 6;
-  if (rem <= 36) return 5;
-  return 4;
+  if (N === 5) {
+    if (rem <= 8) return rem;
+    if (rem <= 14) return 5;
+    return 3;
+  }
+  // 6x6 dots and 7x7 dots (larger grids)
+  if (rem <= 6) return rem;
+  if (rem <= 12) return 4;
+  return 3;
 }
 
 function hardAiMove(state: GameState): Line {
   const board = new FastBoard(state);
   const availableLines = board.getAvailableLines();
+  if (availableLines.length === 0) {
+    return getAllAvailableLines(state)[0];
+  }
   if (availableLines.length === 1) {
-    return board.idxToLineMap[availableLines[0]]!;
+    const single = board.idxToLineMap[availableLines[0]];
+    if (single && !single.owner) return single;
+    return getAllAvailableLines(state)[0];
   }
 
   const aiPlayer = state.currentPlayer;
   const components = analyzeComponents(board);
 
   // 1. Double-cross & Chain Capture Strategy:
-  // If capturing a long chain (>= 3 boxes) and other components remain:
-  // Double-cross when 2 boxes remain in the current chain by sacrificing 2 boxes
   if (components.chains.length > 0) {
     for (const chain of components.chains) {
       if (chain.capturableBoxIdx !== null && chain.isLong && components.hasOtherComponents) {
-        // We are on a long chain and there are other chains left!
-        // If this chain is down to its last 2 boxes: execute double-cross line
         if (chain.length === 2 && chain.doubleCrossLineIdx !== null) {
           const dcLine = board.idxToLineMap[chain.doubleCrossLineIdx];
           if (dcLine && !dcLine.owner) {
@@ -871,30 +900,59 @@ function hardAiMove(state: GameState): Line {
     }
   }
 
-  // 2. Full Minimax Search with Alpha-Beta Pruning
-  const depth = getAdaptiveSearchDepth(board);
+  // Set safety deadline: 2500ms max calculation time
+  searchDeadline = Date.now() + 2500;
+  searchNodeCount = 0;
+  searchTimedOut = false;
+
+  const targetDepth = getAdaptiveSearchDepth(board);
   const orderedLines = orderMoves(board, availableLines, -1, true);
 
-  let bestScore = -Infinity;
-  let bestLineIdx = orderedLines[0];
+  let overallBestLineIdx = orderedLines[0];
 
-  for (const line of orderedLines) {
-    const prevPlayer = board.currentPlayer;
-    const scored = board.makeMove(line);
+  // Iterative deepening search: start at depth 1 up to targetDepth
+  for (let d = 1; d <= targetDepth; d++) {
+    if (searchTimedOut || Date.now() > searchDeadline - 100) break;
 
-    const nextDepth = scored > 0 ? depth : depth - 1;
-    const score = minimax(board, nextDepth, -Infinity, Infinity, aiPlayer, true);
+    let bestScoreForDepth = -Infinity;
+    let bestLineForDepth = orderedLines[0];
+    let depthCompleted = true;
 
-    board.undoMove(line, scored, prevPlayer);
+    for (const line of orderedLines) {
+      if (Date.now() > searchDeadline) {
+        searchTimedOut = true;
+        depthCompleted = false;
+        break;
+      }
 
-    // Strictly deterministic tie-breaking (no randomness)
-    if (score > bestScore || (score === bestScore && line < bestLineIdx)) {
-      bestScore = score;
-      bestLineIdx = line;
+      const prevPlayer = board.currentPlayer;
+      const scored = board.makeMove(line);
+
+      const nextDepth = scored > 0 ? (d > 2 ? d - 1 : d) : d - 1;
+      const score = minimax(board, nextDepth, -Infinity, Infinity, aiPlayer, true);
+
+      board.undoMove(line, scored, prevPlayer);
+
+      if (score > bestScoreForDepth || (score === bestScoreForDepth && line < bestLineForDepth)) {
+        bestScoreForDepth = score;
+        bestLineForDepth = line;
+      }
+    }
+
+    if (depthCompleted && !searchTimedOut) {
+      overallBestLineIdx = bestLineForDepth;
+    } else if (bestScoreForDepth > -Infinity) {
+      // Retain best line found from partial search
+      overallBestLineIdx = bestLineForDepth;
     }
   }
 
-  return board.idxToLineMap[bestLineIdx]!;
+  const chosen = board.idxToLineMap[overallBestLineIdx];
+  if (chosen && !chosen.owner) {
+    return chosen;
+  }
+
+  return board.idxToLineMap[availableLines[0]] ?? getAllAvailableLines(state)[0];
 }
 
 // ─── Medium AI: Limited Search with Suboptimal Chance ────────────────────────
@@ -907,6 +965,7 @@ function mediumAiMove(state: GameState, availableLines: Line[]): Line {
 
   const board = new FastBoard(state);
   const availIdxs = board.getAvailableLines();
+  if (availIdxs.length === 0) return availableLines[0];
 
   // 1. Immediate capture: Greedily complete any 3-sided boxes without double-cross
   const completingIdxs = availIdxs.filter(i => board.isCompleting(i));
@@ -929,18 +988,23 @@ function mediumAiMove(state: GameState, availableLines: Line[]): Line {
         bestCompleting = line;
       }
     }
-    return board.idxToLineMap[bestCompleting]!;
+    const res = board.idxToLineMap[bestCompleting];
+    if (res && !res.owner) return res;
   }
 
   // 2. Prefer safe moves that don't create 3-sided boxes for the opponent
   const safeIdxs = availIdxs.filter(i => board.isSafe(i));
   if (safeIdxs.length > 0) {
-    // Run shallow minimax (depth 3-4, no double-cross) to pick the best safe move
-    const depth = 3;
+    // Run shallow minimax (depth 2-3, no double-cross) to pick the best safe move
+    searchDeadline = Date.now() + 1500;
+    searchNodeCount = 0;
+    searchTimedOut = false;
+    const depth = 2;
     let bestSafe = safeIdxs[0];
     let bestSafeScore = -Infinity;
 
     for (const line of safeIdxs) {
+      if (Date.now() > searchDeadline) break;
       const prevPlayer = board.currentPlayer;
       const scored = board.makeMove(line);
       const score = minimax(board, depth - 1, -Infinity, Infinity, state.currentPlayer, false);
@@ -951,7 +1015,8 @@ function mediumAiMove(state: GameState, availableLines: Line[]): Line {
         bestSafe = line;
       }
     }
-    return board.idxToLineMap[bestSafe]!;
+    const res = board.idxToLineMap[bestSafe];
+    if (res && !res.owner) return res;
   }
 
   // 3. Forced sacrifice: Pick the least damaging unsafe move (shortest chain)
@@ -966,7 +1031,10 @@ function mediumAiMove(state: GameState, availableLines: Line[]): Line {
     }
   }
 
-  return board.idxToLineMap[bestSacrifice]!;
+  const res = board.idxToLineMap[bestSacrifice];
+  if (res && !res.owner) return res;
+
+  return availableLines[0];
 }
 
 // ─── Easy AI: Casual / Beginner ──────────────────────────────────────────────
@@ -986,20 +1054,58 @@ function easyAiMove(state: GameState, availableLines: Line[]): Line {
   return availableLines[Math.floor(Math.random() * availableLines.length)];
 }
 
+// ─── Safe Fallback Generator ─────────────────────────────────────────────────
+
+function fallbackMove(state: GameState, availableLines: Line[]): Line {
+  if (availableLines.length === 0) {
+    return getAllAvailableLines(state)[0];
+  }
+  try {
+    const board = new FastBoard(state);
+    // 1. Try to find completing line
+    for (const line of availableLines) {
+      const idx = board.lineIdToIdxMap.get(line.id);
+      if (idx !== undefined && board.isCompleting(idx)) return line;
+    }
+    // 2. Try to find safe line
+    for (const line of availableLines) {
+      const idx = board.lineIdToIdxMap.get(line.id);
+      if (idx !== undefined && board.isSafe(idx)) return line;
+    }
+  } catch (err) {
+    console.error('Error in fallbackMove heuristic:', err);
+  }
+  return availableLines[0];
+}
+
 // ─── Public Entry Point ──────────────────────────────────────────────────────
 
 export function getAiMove(state: GameState, difficulty: 'easy' | 'medium' | 'hard'): Line | null {
   const availableLines = getAllAvailableLines(state);
-  if (availableLines.length === 0) return null;
+  if (!availableLines || availableLines.length === 0) return null;
 
-  switch (difficulty) {
-    case 'easy':
-      return easyAiMove(state, availableLines);
-    case 'medium':
-      return mediumAiMove(state, availableLines);
-    case 'hard':
-      return hardAiMove(state);
-    default:
-      return hardAiMove(state);
+  try {
+    let chosen: Line | null = null;
+    switch (difficulty) {
+      case 'easy':
+        chosen = easyAiMove(state, availableLines);
+        break;
+      case 'medium':
+        chosen = mediumAiMove(state, availableLines);
+        break;
+      case 'hard':
+      default:
+        chosen = hardAiMove(state);
+        break;
+    }
+
+    // Verify move is valid and not already owned
+    if (chosen && !chosen.owner && availableLines.some(l => l.id === chosen!.id)) {
+      return chosen;
+    }
+    return fallbackMove(state, availableLines);
+  } catch (err) {
+    console.error('Critical AI error encountered during getAiMove:', err);
+    return fallbackMove(state, availableLines);
   }
 }

@@ -47,35 +47,83 @@
     <div class="control-group option-selectors">
       <!-- Grid Size Selector -->
       <div class="setting-item">
-        <label for="grid-size-select" class="setting-label">Grid Size</label>
-        <select id="grid-size-select" class="btn select-input" aria-label="Select Grid Size">
-          <option value="3">3x3 (2x2 Boxes)</option>
-          <option value="4" selected>4x4 (3x3 Boxes)</option>
-          <option value="5">5x5 (4x4 Boxes)</option>
-          <option value="6">6x6 (5x5 Boxes)</option>
-          <option value="7">7x7 (6x6 Boxes)</option>
-        </select>
+        <span class="setting-label" id="grid-size-label">Grid Size</span>
+        <div class="custom-dropdown" id="grid-size-dropdown" data-dropdown="grid-size">
+          <button
+            type="button"
+            class="btn dropdown-trigger"
+            id="grid-size-trigger"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="grid-size-label grid-size-trigger"
+          >
+            <span class="dropdown-selected-text">4x4 (3x3 Boxes)</span>
+            <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <ul class="dropdown-menu" role="listbox" aria-labelledby="grid-size-label" tabindex="-1">
+            <li class="dropdown-option" role="option" data-value="3" aria-selected="false">3x3 (2x2 Boxes)</li>
+            <li class="dropdown-option selected" role="option" data-value="4" aria-selected="true">4x4 (3x3 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="5" aria-selected="false">5x5 (4x4 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="6" aria-selected="false">6x6 (5x5 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="7" aria-selected="false">7x7 (6x6 Boxes)</li>
+          </ul>
+          <input type="hidden" id="grid-size-select" value="4" />
+        </div>
       </div>
 
       <!-- AI Level Selector -->
       <div id="ai-level-container" class="setting-item">
-        <label for="ai-level-select" class="setting-label">Computer Level</label>
-        <select id="ai-level-select" class="btn select-input" aria-label="Select Computer Difficulty Level">
-          <option value="easy">⭐ Easy</option>
-          <option value="medium" selected>⭐⭐ Medium</option>
-          <option value="hard">⭐⭐⭐ Hard</option>
-        </select>
+        <span class="setting-label" id="ai-level-label">Computer Level</span>
+        <div class="custom-dropdown" id="ai-level-dropdown" data-dropdown="ai-level">
+          <button
+            type="button"
+            class="btn dropdown-trigger"
+            id="ai-level-trigger"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="ai-level-label ai-level-trigger"
+          >
+            <span class="dropdown-selected-text">⭐⭐ Medium</span>
+            <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <ul class="dropdown-menu" role="listbox" aria-labelledby="ai-level-label" tabindex="-1">
+            <li class="dropdown-option" role="option" data-value="easy" aria-selected="false">⭐ Easy</li>
+            <li class="dropdown-option selected" role="option" data-value="medium" aria-selected="true">⭐⭐ Medium</li>
+            <li class="dropdown-option" role="option" data-value="hard" aria-selected="false">⭐⭐⭐ Hard</li>
+          </ul>
+          <input type="hidden" id="ai-level-select" value="medium" />
+        </div>
       </div>
 
       <!-- Speed Timer Selector -->
       <div class="setting-item">
-        <label for="timer-select" class="setting-label">Turn Timer</label>
-        <select id="timer-select" class="btn select-input" aria-label="Select Turn Timer">
-          <option value="0">Off (Casual)</option>
-          <option value="10">10 Seconds</option>
-          <option value="15" selected>15 Seconds</option>
-          <option value="30">30 Seconds</option>
-        </select>
+        <span class="setting-label" id="timer-label">Turn Timer</span>
+        <div class="custom-dropdown" id="timer-dropdown" data-dropdown="timer">
+          <button
+            type="button"
+            class="btn dropdown-trigger"
+            id="timer-trigger"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="timer-label timer-trigger"
+          >
+            <span class="dropdown-selected-text">15 Seconds</span>
+            <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <ul class="dropdown-menu" role="listbox" aria-labelledby="timer-label" tabindex="-1">
+            <li class="dropdown-option" role="option" data-value="0" aria-selected="false">Off (Casual)</li>
+            <li class="dropdown-option" role="option" data-value="10" aria-selected="false">10 Seconds</li>
+            <li class="dropdown-option selected" role="option" data-value="15" aria-selected="true">15 Seconds</li>
+            <li class="dropdown-option" role="option" data-value="30" aria-selected="false">30 Seconds</li>
+          </ul>
+          <input type="hidden" id="timer-select" value="15" />
+        </div>
       </div>
     </div>
   </details>
@@ -112,8 +160,14 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.02);
-    overflow: hidden;
+    overflow: visible;
     transition: background var(--transition-fast);
+  }
+
+  .settings-details,
+  .settings-details[open],
+  .settings-details::details-content {
+    overflow: visible;
   }
 
   .settings-summary {
@@ -164,12 +218,14 @@
     gap: 16px;
     padding: 14px 16px;
     width: 100%;
+    overflow: visible;
   }
 
   .setting-item {
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
   }
 
   .setting-label {
@@ -179,15 +235,118 @@
     white-space: nowrap;
   }
 
-  .select-input {
-    appearance: none;
-    -webkit-appearance: none;
+  /* Custom Styled Dropdowns (Avoids native select flash & OS white backgrounds) */
+  .custom-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .dropdown-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     min-height: 44px;
-    padding-right: 28px;
-    padding-left: 12px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
+    padding: 8px 14px;
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dropdown-trigger:hover {
+    background: var(--bg-surface-hover);
+    border-color: var(--border-glow);
+  }
+
+  .dropdown-trigger:focus-visible {
+    outline: 2px solid var(--player1-color);
+    outline-offset: 2px;
+  }
+
+  .custom-dropdown.open .dropdown-trigger {
+    border-color: var(--player1-color);
+    box-shadow: 0 0 12px var(--player1-glow);
+    background: var(--bg-surface-hover);
+  }
+
+  .dropdown-selected-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropdown-chevron {
+    transition: transform var(--transition-normal);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .custom-dropdown.open .dropdown-chevron {
+    transform: rotate(180deg);
+    color: var(--player1-color);
+  }
+
+  :global(.dropdown-menu) {
+    position: fixed;
+    min-width: 160px;
+    width: max-content;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255, 255, 255, 0.2);
+    padding: 6px;
+    margin: 0;
+    list-style: none;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+    backdrop-filter: blur(16px);
+  }
+
+  :global(.dropdown-menu.open) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  :global(.dropdown-option) {
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-main);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  :global(.dropdown-option:hover),
+  :global(.dropdown-option.focused) {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--player1-color);
+  }
+
+  :global(.dropdown-option.selected) {
+    background: rgba(56, 189, 248, 0.22);
+    color: var(--player1-color);
+    font-weight: 600;
   }
 
   @media (max-width: 768px) {
@@ -227,9 +386,17 @@
       gap: 4px;
     }
 
-    .setting-item select {
+    .custom-dropdown {
       width: 100%;
-      min-height: 44px;
+    }
+
+    .dropdown-trigger {
+      width: 100%;
+    }
+
+    .dropdown-menu {
+      width: 100%;
+      max-width: 100%;
     }
   }
 

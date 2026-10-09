@@ -229,8 +229,24 @@ function scheduleAiMove() {
   if (aiTimeoutId) clearTimeout(aiTimeoutId);
   aiTimeoutId = window.setTimeout(() => {
     if (state.isGameOver) return;
-    const aiMoveLine = getAiMove(state, state.config.aiDifficulty);
-    if (aiMoveLine) executeMove(aiMoveLine.id);
+    try {
+      let aiMoveLine = getAiMove(state, state.config.aiDifficulty);
+      if (!aiMoveLine) {
+        const avail = getAllAvailableLines(state);
+        if (avail.length > 0) {
+          aiMoveLine = avail[Math.floor(Math.random() * avail.length)];
+        }
+      }
+      if (aiMoveLine) {
+        executeMove(aiMoveLine.id);
+      }
+    } catch (err) {
+      console.error('Error during AI turn execution:', err);
+      const avail = getAllAvailableLines(state);
+      if (avail.length > 0) {
+        executeMove(avail[0].id);
+      }
+    }
   }, 650);
 }
 
@@ -497,29 +513,8 @@ function setupEventListeners() {
     openPlayerNamesModal(newMode);
   });
 
-  // Grid Size Selector
-  const sizeSelect = document.getElementById('grid-size-select') as HTMLSelectElement;
-  sizeSelect?.addEventListener('change', (e) => {
-    state.config.gridSize = parseInt((e.target as HTMLSelectElement).value, 10);
-    state = createInitialState(state.config);
-    renderAll();
-  });
-
-  // AI Level Selector
-  const aiSelect = document.getElementById('ai-level-select') as HTMLSelectElement;
-  aiSelect?.addEventListener('change', (e) => {
-    state.config.aiDifficulty = (e.target as HTMLSelectElement).value as any;
-  });
-
-  // Timer Selector
-  const timerSelect = document.getElementById('timer-select') as HTMLSelectElement;
-  timerSelect?.addEventListener('change', (e) => {
-    const duration = parseInt((e.target as HTMLSelectElement).value, 10);
-    state.config.timerEnabled = duration > 0;
-    state.config.timerDuration = duration;
-    state.turnTimer = duration;
-    checkTurnTimer();
-  });
+  // Custom Dropdowns in Game Settings
+  setupCustomDropdowns();
 
   // Sound Toggle
   const soundBtn = document.getElementById('sound-toggle-btn');
@@ -531,6 +526,182 @@ function setupEventListeners() {
   });
 
   setupModalListeners();
+}
+
+function setupCustomDropdowns() {
+  const dropdowns = document.querySelectorAll<HTMLElement>('.custom-dropdown');
+
+  dropdowns.forEach(dropdown => {
+    const trigger = dropdown.querySelector<HTMLButtonElement>('.dropdown-trigger');
+    const menu = dropdown.querySelector<HTMLUListElement>('.dropdown-menu');
+    const options = dropdown.querySelectorAll<HTMLLIElement>('.dropdown-option');
+    const selectedText = dropdown.querySelector<HTMLElement>('.dropdown-selected-text');
+    const hiddenInput = dropdown.querySelector<HTMLInputElement>('input[type="hidden"]');
+    const dropdownType = dropdown.getAttribute('data-dropdown');
+
+    if (!trigger || !menu) return;
+
+    // Portal Pattern: Move menu directly into document.body to avoid any parent clipping
+    if (menu.parentElement !== document.body) {
+      document.body.appendChild(menu);
+    }
+
+    const updatePosition = () => {
+      const rect = trigger.getBoundingClientRect();
+      const menuWidth = Math.max(rect.width, 160);
+      let left = rect.left;
+      if (left + menuWidth > window.innerWidth - 12) {
+        left = Math.max(12, window.innerWidth - menuWidth - 12);
+      }
+      menu.style.top = `${rect.bottom + 6}px`;
+      menu.style.left = `${left}px`;
+      menu.style.minWidth = `${rect.width}px`;
+    };
+
+    const closeDropdown = () => {
+      dropdown.classList.remove('open');
+      menu.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+
+    // Toggle dropdown
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = menu.classList.contains('open');
+
+      // Close all other custom dropdowns and menus
+      dropdowns.forEach(d => {
+        if (d !== dropdown) {
+          d.classList.remove('open');
+          d.querySelector<HTMLButtonElement>('.dropdown-trigger')?.setAttribute('aria-expanded', 'false');
+        }
+      });
+      document.querySelectorAll<HTMLUListElement>('.dropdown-menu').forEach(m => {
+        if (m !== menu) m.classList.remove('open');
+      });
+
+      if (!isOpen) {
+        updatePosition();
+        dropdown.classList.add('open');
+        menu.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+        menu.focus();
+      } else {
+        closeDropdown();
+      }
+    });
+
+    // Option click
+    options.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const value = option.getAttribute('data-value') || '';
+        const label = option.textContent?.trim() || '';
+
+        // Update selected state
+        options.forEach(opt => {
+          opt.classList.remove('selected');
+          opt.setAttribute('aria-selected', 'false');
+        });
+        option.classList.add('selected');
+        option.setAttribute('aria-selected', 'true');
+
+        if (selectedText) {
+          selectedText.textContent = label;
+        }
+
+        if (hiddenInput) {
+          hiddenInput.value = value;
+        }
+
+        closeDropdown();
+        trigger.focus();
+
+        // Handle specific settings
+        if (dropdownType === 'grid-size') {
+          const newSize = parseInt(value, 10);
+          if (state.config.gridSize !== newSize) {
+            state.config.gridSize = newSize;
+            state = createInitialState(state.config);
+            renderAll();
+          }
+        } else if (dropdownType === 'ai-level') {
+          state.config.aiDifficulty = value as any;
+        } else if (dropdownType === 'timer') {
+          const duration = parseInt(value, 10);
+          state.config.timerEnabled = duration > 0;
+          state.config.timerDuration = duration;
+          state.turnTimer = duration;
+          checkTurnTimer();
+        }
+      });
+    });
+
+    // Keyboard navigation within dropdown
+    dropdown.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDropdown();
+        trigger.focus();
+      }
+    });
+
+    menu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDropdown();
+        trigger.focus();
+      }
+    });
+  });
+
+  // Reposition open menus on scroll or resize
+  window.addEventListener('scroll', () => {
+    dropdowns.forEach(d => {
+      if (d.classList.contains('open')) {
+        const trigger = d.querySelector<HTMLButtonElement>('.dropdown-trigger');
+        const dropdownType = d.getAttribute('data-dropdown');
+        const menu = document.querySelector<HTMLUListElement>(`ul[aria-labelledby="${dropdownType}-label"]`) ||
+                     document.querySelector<HTMLUListElement>('.dropdown-menu.open');
+        if (trigger && menu) {
+          const rect = trigger.getBoundingClientRect();
+          menu.style.top = `${rect.bottom + 6}px`;
+          menu.style.left = `${rect.left}px`;
+        }
+      }
+    });
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    dropdowns.forEach(d => {
+      if (d.classList.contains('open')) {
+        const trigger = d.querySelector<HTMLButtonElement>('.dropdown-trigger');
+        const dropdownType = d.getAttribute('data-dropdown');
+        const menu = document.querySelector<HTMLUListElement>(`ul[aria-labelledby="${dropdownType}-label"]`) ||
+                     document.querySelector<HTMLUListElement>('.dropdown-menu.open');
+        if (trigger && menu) {
+          const rect = trigger.getBoundingClientRect();
+          menu.style.top = `${rect.bottom + 6}px`;
+          menu.style.left = `${rect.left}px`;
+        }
+      }
+    });
+  }, { passive: true });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    dropdowns.forEach(d => {
+      const trigger = d.querySelector<HTMLButtonElement>('.dropdown-trigger');
+      if (trigger && !trigger.contains(target)) {
+        d.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.querySelectorAll<HTMLUListElement>('.dropdown-menu').forEach(menu => {
+      if (!menu.contains(target)) {
+        menu.classList.remove('open');
+      }
+    });
+  });
 }
 
 function applyTheme(theme: string) {

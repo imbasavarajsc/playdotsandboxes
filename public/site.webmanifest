@@ -1,0 +1,21 @@
+{
+  "name": "BoxBattle - Dots and Boxes Game",
+  "short_name": "BoxBattle",
+  "description": "Play the classic dots and boxes game online for free with 2-player mode, smart AI opponents, and dark theme.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+}
