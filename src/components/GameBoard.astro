@@ -22,9 +22,17 @@
     justify-content: center;
     position: relative;
     user-select: none;
-    touch-action: pan-y;
+    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     contain: layout style;
+    transition: opacity var(--transition-normal);
+  }
+
+  /* Shown while a 2-Player match is waiting on name entry — board is
+     visible but not interactive yet. */
+  .board-wrapper.pending-start {
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   .svg-container {

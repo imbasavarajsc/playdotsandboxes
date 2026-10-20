@@ -9,7 +9,14 @@ let state: GameState;
 let timerInterval: number | null = null;
 let aiTimeoutId: number | null = null;
 
-const STORAGE_KEY = 'boxbattle_player_name';
+// Whether the current match is actually playable yet. Only relevant for
+// 2-Player mode, where the board stays locked until both names are
+// confirmed via the Start button. vs Computer / Self Practice are always
+// considered "started" since they need no name entry.
+let matchStarted = true;
+
+const PVP_P1_STORAGE_KEY = 'boxbattle_pvp_player1_name';
+const PVP_P2_STORAGE_KEY = 'boxbattle_pvp_player2_name';
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
@@ -18,17 +25,17 @@ function abbr(name: string, fallback: string): string {
   return t.length > 0 ? t.substring(0, 3).toUpperCase() : fallback;
 }
 
-function getStoredPlayerName(): string | null {
+function getStoredName(key: string): string | null {
   try {
-    return sessionStorage.getItem(STORAGE_KEY);
+    return localStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-function setStoredPlayerName(name: string): void {
+function setStoredName(key: string, name: string): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, name);
+    localStorage.setItem(key, name);
   } catch {
     // Ignore storage errors
   }
@@ -37,11 +44,13 @@ function setStoredPlayerName(name: string): void {
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 export function initApp() {
+  // vs Computer is the default mode: no name entry needed at all, the
+  // board is playable the instant the page loads.
   const defaultConfig: GameConfig = {
     gridSize: 4,
     mode: 'pve',
     aiDifficulty: 'medium',
-    player1Name: 'Player 1',
+    player1Name: 'You',
     player2Name: 'Computer',
     theme: 'default',
     soundEnabled: true,
@@ -49,22 +58,12 @@ export function initApp() {
     timerDuration: 15,
   };
 
-  const storedName = getStoredPlayerName();
-  if (storedName) {
-    defaultConfig.player1Name = storedName;
-  }
-
   state = createInitialState(defaultConfig);
+  matchStarted = true;
 
   setupEventListeners();
   applyTheme(defaultConfig.theme);
-
-  // Show name-entry modal only if no stored name exists
-  if (!storedName) {
-    openPlayerNamesModal('pve');
-  } else {
-    renderAll();
-  }
+  renderAll();
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
@@ -75,7 +74,10 @@ function renderAll() {
   renderControls();
   checkTurnTimer();
 
-  if (!state.isGameOver) {
+  const boardWrapper = document.querySelector('.board-wrapper');
+  boardWrapper?.classList.toggle('pending-start', !matchStarted);
+
+  if (!state.isGameOver && matchStarted) {
     if (state.config.mode === 'pve' && state.currentPlayer === 2) {
       scheduleAiMove();
     }
@@ -187,7 +189,7 @@ function createSvgLine(group: HTMLElement, line: Line, x1: number, y1: number, x
   hitLine.setAttribute('y1', `${y1}`);
   hitLine.setAttribute('x2', `${x2}`);
   hitLine.setAttribute('y2', `${y2}`);
-  hitLine.setAttribute('stroke-width', '24');
+  hitLine.setAttribute('stroke-width', '30'); // generous invisible tap target, especially for mobile
   hitLine.setAttribute('stroke', 'transparent');
   hitLine.setAttribute('cursor', line.owner ? 'default' : 'pointer');
 
@@ -204,6 +206,7 @@ function createSvgLine(group: HTMLElement, line: Line, x1: number, y1: number, x
 
 function handleUserMove(lineId: string) {
   if (state.isGameOver) return;
+  if (!matchStarted) return; // 2-Player match hasn't been confirmed yet
   if (state.config.mode === 'pve' && state.currentPlayer === 2) return;
   executeMove(lineId);
 }
@@ -279,10 +282,7 @@ function renderScoreboard() {
 
   const isHuman2 = state.config.mode === 'pvp' || state.config.mode === 'sandbox';
   if (p2Name) {
-    p2Name.setAttribute('contenteditable', isHuman2 ? 'true' : 'false');
-    if (document.activeElement !== p2Name) {
-      p2Name.textContent = isHuman2 ? state.config.player2Name : 'Computer';
-    }
+    p2Name.textContent = isHuman2 ? state.config.player2Name : 'Computer';
   }
 
   if (p1Avatar) p1Avatar.textContent = abbr(state.config.player1Name, 'P1');
@@ -293,7 +293,9 @@ function renderScoreboard() {
   }
 
   if (statusMsg) {
-    if (state.isGameOver) {
+    if (!matchStarted) {
+      statusMsg.textContent = 'Enter names to start the match ⬆️';
+    } else if (state.isGameOver) {
       if (state.winner === 1) statusMsg.textContent = `${state.config.player1Name} Wins! 🎉`;
       else if (state.winner === 2) {
         const p2Label = isHuman2 ? state.config.player2Name : 'Computer';
@@ -408,55 +410,67 @@ function showVictoryModal() {
   modal.classList.add('active');
 }
 
-// ─── Player Names Modal ───────────────────────────────────────────────────────
+// ─── Player Names Panel (2-Player mode only) ──────────────────────────────────
+// This is a small anchored dropdown, portaled to document.body and positioned
+// next to the mode selector — never a full-screen blocking modal. It only
+// ever appears for 2-Player mode, and only before that match has started.
 
-function openPlayerNamesModal(mode: string) {
+function positionNamesPanel() {
+  const panel = document.getElementById('player-names-modal');
+  const modeSelect = document.getElementById('mode-select');
+  if (!panel || !modeSelect) return;
+
+  const rect = modeSelect.getBoundingClientRect();
+  const panelWidth = panel.offsetWidth || 300;
+  let left = rect.left;
+  if (left + panelWidth > window.innerWidth - 12) {
+    left = Math.max(12, window.innerWidth - panelWidth - 12);
+  }
+  panel.style.top = `${rect.bottom + 8}px`;
+  panel.style.left = `${left}px`;
+}
+
+function openPlayerNamesPanel() {
   const namesModal = document.getElementById('player-names-modal');
-  const titleEl = document.getElementById('names-modal-title');
-  const descEl = document.getElementById('names-modal-desc');
-  const p1Label = namesModal?.querySelector('.p1-input-group label');
-  const p2Group = document.getElementById('p2-name-group');
   const p1Input = document.getElementById('p1-name-input') as HTMLInputElement;
   const p2Input = document.getElementById('p2-name-input') as HTMLInputElement;
-  const startBtn = document.getElementById('start-2p-btn');
 
-  // Stop any running timer while modal is open
   if (timerInterval) clearInterval(timerInterval);
 
-  if (mode === 'pvp') {
-    if (titleEl) titleEl.textContent = '⚔️ 2 Player Mode';
-    if (descEl) descEl.textContent = 'Enter names for both players to start the match.';
-    if (p1Label) p1Label.innerHTML = '<span class="player-dot p1-dot"></span> Player 1 Name';
-    if (p2Group) p2Group.style.display = 'flex';
-    if (startBtn) startBtn.textContent = 'Start Battle 🚀';
-    if (p1Input) p1Input.value = state.config.player1Name !== 'Player 1' ? state.config.player1Name : 'Player 1';
-    if (p2Input) p2Input.value = (state.config.player2Name !== 'Computer' && state.config.player2Name !== 'Player 2')
-      ? state.config.player2Name : 'Player 2';
-  } else {
-    if (titleEl) titleEl.textContent = '🎮 Welcome to BoxBattle';
-    if (descEl) descEl.textContent = mode === 'sandbox'
-      ? 'Enter your name to start the self-practice session.'
-      : 'Enter your name to play against the Computer.';
-    if (p1Label) p1Label.innerHTML = '<span class="player-dot p1-dot"></span> Your Name';
-    if (p2Group) p2Group.style.display = 'none';
-    if (startBtn) startBtn.textContent = "Let's Play 🚀";
-    if (p1Input) p1Input.value = state.config.player1Name !== 'Player 1' ? state.config.player1Name : '';
+  if (p1Input) p1Input.value = getStoredName(PVP_P1_STORAGE_KEY) || 'Player 1';
+  if (p2Input) p2Input.value = getStoredName(PVP_P2_STORAGE_KEY) || 'Player 2';
+
+  // Portal to body so it's never clipped by any ancestor container
+  if (namesModal && namesModal.parentElement !== document.body) {
+    document.body.appendChild(namesModal);
   }
 
-  namesModal?.classList.add('active');
+  positionNamesPanel();
+  namesModal?.classList.add('open');
 
-  // Focus the P1 input after a small delay
   setTimeout(() => p1Input?.focus(), 100);
+}
+
+function closePlayerNamesPanel() {
+  document.getElementById('player-names-modal')?.classList.remove('open');
 }
 
 // ─── Event Listeners ─────────────────────────────────────────────────────────
 
 function setupEventListeners() {
-  // New Game Button — start new game with stored name
+  // New Game Button
   document.getElementById('new-game-btn')?.addEventListener('click', () => {
     audioEngine.playButtonClick();
-    state = createInitialState(state.config);
-    renderAll();
+    if (state.config.mode === 'pvp') {
+      // Reset back to the pre-match state and ask for names again
+      matchStarted = false;
+      state = createInitialState(state.config);
+      renderAll();
+      openPlayerNamesPanel();
+    } else {
+      state = createInitialState(state.config);
+      renderAll();
+    }
   });
 
   // Undo Button
@@ -481,36 +495,36 @@ function setupEventListeners() {
     }
   });
 
-  // Editable Player Name (scoreboard inline edit)
-  const p1NameElem = document.getElementById('p1-name');
-  p1NameElem?.addEventListener('input', () => {
-    state.config.player1Name = p1NameElem.textContent?.trim() || 'Player 1';
-  });
-
-  const p2NameElem = document.getElementById('p2-name');
-  p2NameElem?.addEventListener('input', () => {
-    if (state.config.mode === 'pvp' || state.config.mode === 'sandbox') {
-      state.config.player2Name = p2NameElem.textContent?.trim() || 'Player 2';
-    }
-  });
-
   // Mode Selector
   const modeSelect = document.getElementById('mode-select') as HTMLSelectElement;
   modeSelect?.addEventListener('change', (e) => {
     const newMode = (e.target as HTMLSelectElement).value as any;
     state.config.mode = newMode;
 
-    if (newMode === 'pve') {
-      state.config.player2Name = 'Computer';
-    } else if (newMode !== 'pvp' && state.config.player2Name === 'Computer') {
-      state.config.player2Name = 'Player 2';
-    }
-
     const aiContainer = document.getElementById('ai-level-container');
     if (aiContainer) aiContainer.style.display = newMode === 'pve' ? 'flex' : 'none';
 
-    // Always ask for names when switching mode
-    openPlayerNamesModal(newMode);
+    if (newMode === 'pvp') {
+      // Lock the board and ask for both names before the match begins
+      matchStarted = false;
+      closePlayerNamesPanel();
+      state = createInitialState(state.config);
+      renderAll();
+      openPlayerNamesPanel();
+    } else {
+      closePlayerNamesPanel();
+      matchStarted = true;
+      if (newMode === 'pve') {
+        state.config.player1Name = 'You';
+        state.config.player2Name = 'Computer';
+      } else {
+        // Self Practice
+        state.config.player1Name = 'Player 1';
+        state.config.player2Name = 'Player 2';
+      }
+      state = createInitialState(state.config);
+      renderAll();
+    }
   });
 
   // Custom Dropdowns in Game Settings
@@ -709,19 +723,20 @@ function applyTheme(theme: string) {
 }
 
 function setupModalListeners() {
-  const namesModal = document.getElementById('player-names-modal');
   const p1Input = document.getElementById('p1-name-input') as HTMLInputElement;
   const p2Input = document.getElementById('p2-name-input') as HTMLInputElement;
 
-  // "Let's Play / Start Battle" button
+  // "Start Battle" button — locks in both names and starts the 2-Player match
   document.getElementById('start-2p-btn')?.addEventListener('click', () => {
     const name1 = p1Input?.value.trim() || 'Player 1';
-    const name2 = state.config.mode === 'pvp' ? (p2Input?.value.trim() || 'Player 2') : 'Computer';
+    const name2 = p2Input?.value.trim() || 'Player 2';
     state.config.player1Name = name1;
     state.config.player2Name = name2;
-    // Store the player name for this browser session
-    setStoredPlayerName(name1);
-    namesModal?.classList.remove('active');
+    setStoredName(PVP_P1_STORAGE_KEY, name1);
+    setStoredName(PVP_P2_STORAGE_KEY, name2);
+
+    closePlayerNamesPanel();
+    matchStarted = true;
     state = createInitialState(state.config);
     renderAll();
   });
@@ -733,6 +748,39 @@ function setupModalListeners() {
         document.getElementById('start-2p-btn')?.click();
       }
     });
+  });
+
+  // Reposition the names panel on resize/scroll while it's open
+  window.addEventListener('resize', () => {
+    if (document.getElementById('player-names-modal')?.classList.contains('open')) {
+      positionNamesPanel();
+    }
+  }, { passive: true });
+
+  // Share Result button (Victory Modal)
+  document.getElementById('share-result-btn')?.addEventListener('click', async () => {
+    const p2Label = state.config.mode === 'pve' ? 'Computer' : state.config.player2Name;
+    const text = `I beat ${p2Label} ${state.scores[1]}-${state.scores[2]} in BoxBattle! Play at playdotsandboxes.com`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text, url: 'https://playdotsandboxes.com' });
+      } catch {
+        // User cancelled the share sheet — nothing to do
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text);
+        const btn = document.getElementById('share-result-btn');
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = 'Copied! ✅';
+          setTimeout(() => { btn.innerHTML = original; }, 1800);
+        }
+      } catch {
+        // Clipboard unavailable — fail silently
+      }
+    }
   });
 
   // Tutorial Modal

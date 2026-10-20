@@ -1,22 +1,22 @@
 ---
 ---
-<div id="player-names-modal" class="modal-overlay active">
-  <div class="modal-content player-names-card">
+<div id="player-names-modal" class="names-panel">
+  <div class="player-names-card">
     <div class="modal-header">
-      <h2 id="names-modal-title" class="modal-title">🎮 Welcome to BoxBattle</h2>
+      <h2 id="names-modal-title" class="modal-title">⚔️ 2 Player Mode</h2>
     </div>
 
-    <p id="names-modal-desc" class="modal-description">Enter your name to begin. The game starts only after you confirm.</p>
+    <p id="names-modal-desc" class="modal-description">Enter names for both players to start the match.</p>
 
     <div class="name-inputs-container">
       <div class="input-group p1-input-group">
         <label for="p1-name-input">
-          <span class="player-dot p1-dot"></span> Your Name
+          <span class="player-dot p1-dot"></span> Player 1 Name
         </label>
         <input type="text" id="p1-name-input" class="name-input" placeholder="Player 1" maxlength="16" value="Player 1" autocomplete="off" />
       </div>
 
-      <div id="p2-name-group" class="input-group p2-input-group" style="display:none">
+      <div id="p2-name-group" class="input-group p2-input-group">
         <label for="p2-name-input">
           <span class="player-dot p2-dot"></span> Player 2 Name
         </label>
@@ -26,17 +26,45 @@
 
     <div class="modal-footer">
       <button id="start-2p-btn" class="btn btn-primary btn-lg">
-        Let's Play 🚀
+        Start Battle 🚀
       </button>
     </div>
   </div>
 </div>
 
 <style>
+  /* Anchored dropdown panel (portaled to document.body, positioned via JS
+     near the mode selector) — NOT a full-screen blocking overlay. Only
+     ever shown for 2-Player mode, before the match starts. */
+  .names-panel {
+    position: fixed;
+    width: 300px;
+    max-width: calc(100vw - 24px);
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px) scale(0.98);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+  }
+
+  .names-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
   .player-names-card {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 1px rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
+    padding: 18px;
   }
 
   .modal-header {
@@ -46,12 +74,12 @@
   }
 
   .modal-title {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     font-weight: 800;
   }
 
   .modal-description {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
     line-height: 1.5;
   }
