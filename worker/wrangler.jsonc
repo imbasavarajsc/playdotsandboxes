@@ -1,0 +1,7 @@
+{
+  "name": "boxbattle-contact",
+  "main": "contact-worker.js",
+  "compatibility_date": "2025-10-01",
+  "send_email": [{ "name": "EMAIL" }],
+  "vars": { "TO_EMAIL": "basuchikkamath5@gmail.com" }
+}
