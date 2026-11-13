@@ -20,7 +20,10 @@ const { activePage } = Astro.props;
         </svg>
       </div>
       <div class="brand-text">
-        <span class="game-title">BoxBattle</span>
+        <span class="game-title">
+          <span class="title-main">Dots and Boxes</span>
+          <span class="brand-badge">BoxBattle</span>
+        </span>
       </div>
     </a>
 
@@ -71,11 +74,30 @@ const { activePage } = Astro.props;
   }
 
   .game-title {
-    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1;
+  }
+
+  .title-main {
+    font-size: 1.75rem;
     font-weight: 900;
     letter-spacing: -0.5px;
     color: var(--text-main);
-    line-height: 1;
+  }
+
+  .brand-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--player1-color);
+    background: var(--player1-bg);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
+    white-space: nowrap;
   }
 
   .nav-links {
@@ -120,8 +142,13 @@ const { activePage } = Astro.props;
       width: calc(100% - 16px);
     }
     
-    .game-title {
-      font-size: 1.5rem;
+    .title-main {
+      font-size: 1.25rem;
+    }
+
+    .brand-badge {
+      font-size: 0.625rem;
+      padding: 1px 6px;
     }
 
     .brand-icon {

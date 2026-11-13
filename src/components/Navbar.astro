@@ -14,7 +14,10 @@
         </svg>
       </div>
       <div class="brand-text">
-        <h1 class="game-title">BoxBattle</h1>
+        <h1 class="game-title">
+          <span class="title-main">Dots and Boxes</span>
+          <span class="brand-badge">BoxBattle</span>
+        </h1>
       </div>
     </div>
 
@@ -102,11 +105,31 @@
   }
 
   .game-title {
-    font-size: 2.2rem;
-    font-weight: 900;
-    letter-spacing: -1px;
-    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
     line-height: 1;
+  }
+
+  .title-main {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.75px;
+    color: var(--text-main);
+  }
+
+  .brand-badge {
+    font-size: 0.725rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--player1-color);
+    background: var(--player1-bg);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
+    white-space: nowrap;
   }
 
   .nav-actions {
@@ -195,8 +218,13 @@
       gap: 10px;
     }
 
-    .game-title {
-      font-size: 1.4rem;
+    .title-main {
+      font-size: 1.25rem;
+    }
+
+    .brand-badge {
+      font-size: 0.625rem;
+      padding: 1px 6px;
     }
 
     .select-input {

@@ -103,5 +103,5 @@
   <rect x="100" y="570" width="1000" height="4" fill="url(#accent-gradient)" rx="2"/>
   
   <!-- URL -->
-  <text x="600" y="610" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" font-weight="500" fill="#8f8f8f">dotsandboxesgame.com</text>
+  <text x="600" y="610" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="16" font-weight="500" fill="#8f8f8f">playdotsandboxes.com</text>
 </svg>
