@@ -1,0 +1,1342 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SubpageHeader from '../components/SubpageHeader.astro';
+import Footer from '../components/Footer.astro';
+
+const printableSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "headline": "Free Printable Dots and Boxes Grids (PDF) — 4x4, 5x5, 6x6 Sheets",
+      "description": "Download and print free Dots and Boxes game sheets in high-resolution PDF format. Choose 4x4, 5x5, 6x6, or 7x7 dot grids in full-page or 4-per-page worksheet layouts.",
+      "author": {
+        "@type": "Organization",
+        "name": "BoxBattle (Dots and Boxes Game)"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Dots and Boxes Game",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://playdotsandboxes.com/og-image.svg"
+        }
+      },
+      "mainEntityOfPage": "https://playdotsandboxes.com/printable"
+    },
+    {
+      "@type": "DigitalDocument",
+      "name": "Dots and Boxes Printable Grid Sheet",
+      "encodingFormat": "application/pdf",
+      "isAccessibleForFree": true,
+      "description": "High-contrast printable vector template sheets for the classic Dots and Boxes pen-and-paper game.",
+      "url": "https://playdotsandboxes.com/printable"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I save the Dots and Boxes grid as a PDF file?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Click the 'Print / Save as PDF' button. In the browser print dialog, choose 'Save as PDF' from the Printer/Destination dropdown menu, then click Save to download your file."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which grid size is best for beginners and kids?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The 4x4 dot grid (3x3 boxes) is ideal for beginners and children. A game lasts 3 to 5 minutes, making it quick and easy to learn the core chain and box-capturing mechanics."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the standard tournament grid size for Dots and Boxes?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The 6x6 dot grid (5x5 boxes) and 7x7 dot grid (6x6 boxes) are standard competitive sizes. A 6x6 dot grid has 25 boxes (odd parity), guaranteeing a decisive winner with no draws."
+          }
+        }
+      ]
+    }
+  ]
+};
+---
+
+<Layout
+  title="Free Printable Dots and Boxes Grids (PDF) — 4x4, 5x5, 6x6 Sheets"
+  description="Download and print free Dots and Boxes game sheets in crisp, high-resolution PDF format. Customize 4x4, 5x5, 6x6, and 7x7 dot grids in 1-per-page or 4-per-page layouts. 100% free."
+  url="https://playdotsandboxes.com/printable"
+  schema={printableSchema}
+>
+  <div class="subpage-wrapper">
+    <SubpageHeader activePage="printable" />
+
+    <main class="content-container">
+      <!-- On-Screen Intro & Controls -->
+      <div class="article-card glass-panel no-print">
+        <header class="page-header">
+          <div class="badge">Printable Game Sheets (PDF)</div>
+          <h1 class="page-title">Free Printable Dots and Boxes Grids (PDF &amp; Print)</h1>
+          <p class="subtitle">
+            Need a screen-free activity for school, road trips, family game nights, or restaurant waits? Generate clean, high-contrast, printer-friendly Dots and Boxes template sheets. Choose your grid size and layout below, then print directly or save as a PDF with one click.
+          </p>
+
+          <!-- Prominent CTA Button -->
+          <div class="play-online-cta-banner">
+            <div class="cta-text">
+              <span class="cta-emoji">⚡</span>
+              <div>
+                <strong>Want to play right now without printing?</strong>
+                <p>Play instant 2-player or challenge our smart AI directly in your web browser.</p>
+              </div>
+            </div>
+            <a href="/" class="btn btn-primary cta-btn">
+              <span>🎮 Play Online Instead</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
+        </header>
+
+        <!-- Interactive Customizer Controls -->
+        <section class="generator-toolbar" aria-label="Sheet Customizer">
+          <div class="toolbar-section">
+            <span class="control-label">1. Choose Dot Grid Size:</span>
+            <div class="btn-group" id="grid-size-buttons" role="radiogroup" aria-label="Grid Size">
+              <button type="button" class="tool-btn" data-size="4" aria-checked="false">
+                <strong>4x4 Dots</strong>
+                <small>3x3 Boxes (Quick)</small>
+              </button>
+              <button type="button" class="tool-btn active" data-size="5" aria-checked="true">
+                <strong>5x5 Dots</strong>
+                <small>4x4 Boxes (Classic)</small>
+              </button>
+              <button type="button" class="tool-btn" data-size="6" aria-checked="false">
+                <strong>6x6 Dots</strong>
+                <small>5x5 Boxes (Strategy)</small>
+              </button>
+              <button type="button" class="tool-btn" data-size="7" aria-checked="false">
+                <strong>7x7 Dots</strong>
+                <small>6x6 Boxes (Epic)</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar-section">
+            <span class="control-label">2. Choose Page Layout:</span>
+            <div class="btn-group" id="layout-buttons" role="radiogroup" aria-label="Page Layout">
+              <button type="button" class="tool-btn active" data-layout="single" aria-checked="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                </svg>
+                <span>1 Large Grid per Page</span>
+              </button>
+              <button type="button" class="tool-btn" data-layout="quad" aria-checked="false">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="8" height="8" rx="1"></rect>
+                  <rect x="13" y="3" width="8" height="8" rx="1"></rect>
+                  <rect x="3" y="13" width="8" height="8" rx="1"></rect>
+                  <rect x="13" y="13" width="8" height="8" rx="1"></rect>
+                </svg>
+                <span>4 Small Grids per Page</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Print Action Trigger -->
+          <div class="toolbar-actions">
+            <button id="trigger-print-btn" class="btn btn-print" type="button" aria-label="Print or Save Sheet as PDF">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>🖨️ Print / Save as PDF</span>
+            </button>
+            <p class="print-hint">
+              💡 <em>Tip: To save as a PDF file, select <strong>"Save as PDF"</strong> in your browser print window.</em>
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Live Printable Sheet Preview Container -->
+      <section class="printable-section" aria-label="Printable Paper Preview">
+        <div class="preview-header-bar no-print">
+          <span class="preview-badge">Live Paper Preview</span>
+          <span class="preview-note">Only the white sheet below will appear on your paper / PDF</span>
+        </div>
+
+        <div class="printable-sheet-wrapper">
+          <div id="printable-sheet" class="printable-sheet">
+            <!-- SSR Default Content: 5x5 Single Grid (Replaced dynamically via client script on user selection) -->
+            <div class="sheet-inner layout-single">
+              <div class="sheet-header">
+                <div class="header-branding">
+                  <h2 class="sheet-title">DOTS AND BOXES</h2>
+                  <p class="sheet-grid-badge" id="sheet-grid-label">5x5 Dots &bull; 4x4 Boxes (16 Total Boxes)</p>
+                </div>
+                <div class="sheet-meta-box">
+                  <div class="meta-row">
+                    <span class="meta-field"><strong>Player 1:</strong> ________________________</span>
+                    <span class="meta-field"><strong>Player 2:</strong> ________________________</span>
+                  </div>
+                  <div class="meta-row">
+                    <span class="meta-field"><strong>Final Score:</strong> ______ vs ______</span>
+                    <span class="meta-field"><strong>Date:</strong> ____________________</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main SVG Grid Area -->
+              <div class="sheet-grid-container" id="sheet-grid-container">
+                <svg class="printable-svg" viewBox="0 0 600 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <!-- 5x5 Dots Matrix (spacing: 125px, padding: 50px) -->
+                  <circle cx="50" cy="50" r="7" fill="#000000" />
+                  <circle cx="175" cy="50" r="7" fill="#000000" />
+                  <circle cx="300" cy="50" r="7" fill="#000000" />
+                  <circle cx="425" cy="50" r="7" fill="#000000" />
+                  <circle cx="550" cy="50" r="7" fill="#000000" />
+
+                  <circle cx="50" cy="175" r="7" fill="#000000" />
+                  <circle cx="175" cy="175" r="7" fill="#000000" />
+                  <circle cx="300" cy="175" r="7" fill="#000000" />
+                  <circle cx="425" cy="175" r="7" fill="#000000" />
+                  <circle cx="550" cy="175" r="7" fill="#000000" />
+
+                  <circle cx="50" cy="300" r="7" fill="#000000" />
+                  <circle cx="175" cy="300" r="7" fill="#000000" />
+                  <circle cx="300" cy="300" r="7" fill="#000000" />
+                  <circle cx="425" cy="300" r="7" fill="#000000" />
+                  <circle cx="550" cy="300" r="7" fill="#000000" />
+
+                  <circle cx="50" cy="425" r="7" fill="#000000" />
+                  <circle cx="175" cy="425" r="7" fill="#000000" />
+                  <circle cx="300" cy="425" r="7" fill="#000000" />
+                  <circle cx="425" cy="425" r="7" fill="#000000" />
+                  <circle cx="550" cy="425" r="7" fill="#000000" />
+
+                  <circle cx="50" cy="550" r="7" fill="#000000" />
+                  <circle cx="175" cy="550" r="7" fill="#000000" />
+                  <circle cx="300" cy="550" r="7" fill="#000000" />
+                  <circle cx="425" cy="550" r="7" fill="#000000" />
+                  <circle cx="550" cy="550" r="7" fill="#000000" />
+                </svg>
+              </div>
+
+              <!-- Sheet Watermark Footer -->
+              <footer class="sheet-footer">
+                <span class="watermark-text">Play free online with friends at playdotsandboxes.com &bull; Free Printable Template</span>
+                <span class="watermark-rules">Connect dots with lines &bull; 4th line captures box &bull; Bonus turn on capture</span>
+              </footer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comprehensive SEO Educational Guide (Screen Only) -->
+      <article class="article-card glass-panel no-print" style="margin-top: 2rem;">
+        <section class="rules-section">
+          <h2>📝 How to Play Dots and Boxes on Paper (Official Rules)</h2>
+          <p>
+            Playing Dots and Boxes with a pen and printed sheet is one of the world's most enduring pencil-and-paper games (originally invented in the 19th century by French mathematician Édouard Lucas as <em>La Pipopipette</em>). Follow these simple instructions for a match:
+          </p>
+
+          <ol class="numbered-list">
+            <li>
+              <strong>Choose Pen Colors or Initials:</strong> Player 1 and Player 2 each select a distinct colored pen (or agree on writing their initials, like "A" and "B", inside completed boxes).
+            </li>
+            <li>
+              <strong>Take Turns Drawing Lines:</strong> On your turn, draw one horizontal or vertical line connecting any two adjacent, unlinked dots. Diagonal lines are strictly forbidden.
+            </li>
+            <li>
+              <strong>Complete a Box to Score:</strong> When you draw the fourth line that completes a 1x1 square box, you claim that box! Write your initial or color in the square, and award yourself 1 point.
+            </li>
+            <li>
+              <strong>Mandatory Bonus Turn:</strong> Whenever you capture a box, you <em>must</em> immediately take another turn. If your bonus turn completes another box, you score again and keep playing until you draw a line that does not complete a box.
+            </li>
+            <li>
+              <strong>Win Condition:</strong> The game ends when every possible line is drawn and all boxes are captured. The player with the highest number of claimed boxes wins the match!
+            </li>
+          </ol>
+        </section>
+
+        <!-- Grid Comparison Guide -->
+        <section class="rules-section">
+          <h2>📐 Printable Dots and Boxes Grid Comparison Guide</h2>
+          <p>
+            Selecting the right grid size ensures your match is engaging and fits your available time:
+          </p>
+          <div class="table-wrapper">
+            <table class="rules-table">
+              <thead>
+                <tr>
+                  <th>Dot Grid</th>
+                  <th>Total Boxes</th>
+                  <th>Total Lines</th>
+                  <th>Average Match Time</th>
+                  <th>Best For</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>4x4 Dots</strong></td>
+                  <td>9 Boxes (3x3)</td>
+                  <td>24 Lines</td>
+                  <td>3 &ndash; 5 minutes</td>
+                  <td>Young kids, beginners, quick restaurant breaks</td>
+                </tr>
+                <tr>
+                  <td><strong>5x5 Dots</strong></td>
+                  <td>16 Boxes (4x4)</td>
+                  <td>40 Lines</td>
+                  <td>6 &ndash; 10 minutes</td>
+                  <td>The standard classic; balanced chain strategy</td>
+                </tr>
+                <tr>
+                  <td><strong>6x6 Dots</strong></td>
+                  <td>25 Boxes (5x5)</td>
+                  <td>60 Lines</td>
+                  <td>12 &ndash; 18 minutes</td>
+                  <td>Odd parity (no draws possible!); serious tactics</td>
+                </tr>
+                <tr>
+                  <td><strong>7x7 Dots</strong></td>
+                  <td>36 Boxes (6x6)</td>
+                  <td>84 Lines</td>
+                  <td>20 &ndash; 30 minutes</td>
+                  <td>Tournament finals, long corridors, deep sacrifices</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Classroom & Travel Benefits -->
+        <section class="rules-section">
+          <h2>🎒 Perfect for Classrooms, Road Trips &amp; Screen-Free Evenings</h2>
+          <div class="features-grid">
+            <div class="feature-item">
+              <span class="feat-badge">🧠 Spatial Reasoning</span>
+              <h3>Math &amp; Geometry Skills</h3>
+              <p>Teachers use Dots and Boxes worksheets to build intuitive spatial perception, perimeter comprehension, and combinatorial logic in elementary and middle school students.</p>
+            </div>
+            <div class="feature-item">
+              <span class="feat-badge">🚗 100% Screen-Free</span>
+              <h3>Road Trips &amp; Flights</h3>
+              <p>Print a 4-grids worksheet, grab two pens or pencils, and keep children thoroughly entertained in planes, cars, trains, or waiting rooms with zero battery dependency.</p>
+            </div>
+            <div class="feature-item">
+              <span class="feat-badge">🏆 Double-Cross Tactics</span>
+              <h3>Strategic Depth</h3>
+              <p>Far beyond a simple children's doodle, master players use the legendary "Double-Cross" tactic to forfeit 2 boxes and control the final sweeping chains of the board.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Printable FAQ -->
+        <section class="rules-section">
+          <h2>❓ Frequently Asked Questions (Printable Grids)</h2>
+          <div class="faq-accordion">
+            <details class="faq-item">
+              <summary>How do I save this sheet as a PDF file?</summary>
+              <p>Click the <strong>"🖨️ Print / Save as PDF"</strong> button above. When your browser's print dialog opens, look for the <strong>"Destination"</strong> or <strong>"Printer"</strong> dropdown and change it from your physical printer to <strong>"Save as PDF"</strong>. Then click Save to download the document to your computer or phone.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Can I print multiple copies for my classroom or camp?</summary>
+              <p>Yes! These printable sheets are 100% free and open for personal, school, homeschool, camp, or non-commercial recreation use. Print as many copies as you need.</p>
+            </details>
+            <details class="faq-item">
+              <summary>What is the difference between 1 Large Grid and 4 Small Grids?</summary>
+              <p>The <strong>1 Large Grid per Page</strong> layout provides a spacious, easy-to-see board ideal for younger children, colored markers, or competitive single games. The <strong>4 Small Grids per Page</strong> layout saves paper by fitting four separate matches on one page, making it great for best-of-4 tournaments or car trips.</p>
+            </details>
+            <details class="faq-item">
+              <summary>Why is a 6x6 dot grid recommended for competitive matches?</summary>
+              <p>A 6x6 dot grid contains exactly 25 boxes (an odd number). Because 25 cannot be evenly split between two players, ties and draws are mathematically impossible! The first player to reach 13 captured boxes is guaranteed the victory.</p>
+            </details>
+          </div>
+        </section>
+
+        <!-- Bottom Play Online CTA -->
+        <div class="cta-banner" style="margin-top: 1.5rem;">
+          <h3>Ready to Test Your Skills Online?</h3>
+          <p>Challenge smart AI opponents, play online with friends via private room codes, or play local 2-player pass-and-play right in your browser.</p>
+          <div class="cta-buttons">
+            <a href="/" class="btn btn-primary">🎮 Play Online Now (Free)</a>
+            <a href="/strategy" class="btn btn-outline">🧠 Read Winning Strategies</a>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <Footer />
+  </div>
+</Layout>
+
+<script>
+  // Client-side Interactive Printable Customizer
+  document.addEventListener('DOMContentLoaded', () => {
+    let currentSize = 5; // Default 5x5 dots (4x4 boxes)
+    let currentLayout: 'single' | 'quad' = 'single'; // 'single' | 'quad'
+
+    const sizeButtons = document.querySelectorAll<HTMLButtonElement>('#grid-size-buttons .tool-btn');
+    const layoutButtons = document.querySelectorAll<HTMLButtonElement>('#layout-buttons .tool-btn');
+    const printBtn = document.getElementById('trigger-print-btn');
+    const sheetEl = document.getElementById('printable-sheet');
+
+    // Trigger Print Dialog
+    printBtn?.addEventListener('click', () => {
+      window.print();
+    });
+
+    // Handle Size Changes
+    sizeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const size = parseInt(btn.getAttribute('data-size') || '5', 10);
+        if (size === currentSize) return;
+
+        currentSize = size;
+        sizeButtons.forEach(b => {
+          const isTarget = b === btn;
+          b.classList.toggle('active', isTarget);
+          b.setAttribute('aria-checked', isTarget ? 'true' : 'false');
+        });
+
+        renderSheet();
+      });
+    });
+
+    // Handle Layout Changes
+    layoutButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layout = (btn.getAttribute('data-layout') || 'single') as 'single' | 'quad';
+        if (layout === currentLayout) return;
+
+        currentLayout = layout;
+        layoutButtons.forEach(b => {
+          const isTarget = b === btn;
+          b.classList.toggle('active', isTarget);
+          b.setAttribute('aria-checked', isTarget ? 'true' : 'false');
+        });
+
+        renderSheet();
+      });
+    });
+
+    // Generate SVG markup for a given dot grid size
+    function generateGridSvg(n: number, viewBoxSize: number = 600, dotRadius: number = 7): string {
+      const padding = 50;
+      const usable = viewBoxSize - padding * 2;
+      const spacing = usable / (n - 1);
+
+      let dotsSvg = '';
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          const cx = Math.round(padding + c * spacing);
+          const cy = Math.round(padding + r * spacing);
+          dotsSvg += `<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="#000000" />\n`;
+        }
+      }
+
+      return `
+        <svg class="printable-svg" viewBox="0 0 ${viewBoxSize} ${viewBoxSize}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+          ${dotsSvg}
+        </svg>
+      `;
+    }
+
+    // Render the complete printable worksheet
+    function renderSheet() {
+      if (!sheetEl) return;
+
+      const N = currentSize;
+      const boxCount = N - 1;
+      const totalBoxes = boxCount * boxCount;
+
+      if (currentLayout === 'single') {
+        const svgContent = generateGridSvg(N, 600, N > 5 ? 6 : 7.5);
+
+        sheetEl.innerHTML = `
+          <div class="sheet-inner layout-single">
+            <div class="sheet-header">
+              <div class="header-branding">
+                <h2 class="sheet-title">DOTS AND BOXES</h2>
+                <p class="sheet-grid-badge">${N}x${N} Dots &bull; ${boxCount}x${boxCount} Boxes (${totalBoxes} Total Boxes)</p>
+              </div>
+              <div class="sheet-meta-box">
+                <div class="meta-row">
+                  <span class="meta-field"><strong>Player 1:</strong> ________________________</span>
+                  <span class="meta-field"><strong>Player 2:</strong> ________________________</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-field"><strong>Final Score:</strong> ______ vs ______</span>
+                  <span class="meta-field"><strong>Date:</strong> ____________________</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sheet-grid-container">
+              ${svgContent}
+            </div>
+
+            <footer class="sheet-footer">
+              <span class="watermark-text">Play free online with friends at playdotsandboxes.com &bull; Free Printable Template</span>
+              <span class="watermark-rules">Connect dots with lines &bull; 4th line captures box &bull; Bonus turn on capture</span>
+            </footer>
+          </div>
+        `;
+      } else {
+        // Quad Layout (4 matches on one sheet)
+        const dotRadius = N > 5 ? 4.5 : 5.5;
+        const svg1 = generateGridSvg(N, 400, dotRadius);
+        const svg2 = generateGridSvg(N, 400, dotRadius);
+        const svg3 = generateGridSvg(N, 400, dotRadius);
+        const svg4 = generateGridSvg(N, 400, dotRadius);
+
+        sheetEl.innerHTML = `
+          <div class="sheet-inner layout-quad">
+            <div class="sheet-header-quad">
+              <h2 class="sheet-title-quad">DOTS AND BOXES &mdash; 4-GAME TOURNAMENT SHEET</h2>
+              <p class="sheet-grid-badge-quad">${N}x${N} Dots &bull; ${boxCount}x${boxCount} Boxes (${totalBoxes} Boxes / Match)</p>
+            </div>
+
+            <div class="quad-grid-container">
+              <div class="quad-match-card">
+                <div class="quad-match-header">
+                  <span class="match-num">GAME #1</span>
+                  <span class="match-meta">P1: ________ P2: ________ &bull; Score: ___ - ___</span>
+                </div>
+                <div class="quad-svg-wrapper">${svg1}</div>
+              </div>
+
+              <div class="quad-match-card">
+                <div class="quad-match-header">
+                  <span class="match-num">GAME #2</span>
+                  <span class="match-meta">P1: ________ P2: ________ &bull; Score: ___ - ___</span>
+                </div>
+                <div class="quad-svg-wrapper">${svg2}</div>
+              </div>
+
+              <div class="quad-match-card">
+                <div class="quad-match-header">
+                  <span class="match-num">GAME #3</span>
+                  <span class="match-meta">P1: ________ P2: ________ &bull; Score: ___ - ___</span>
+                </div>
+                <div class="quad-svg-wrapper">${svg3}</div>
+              </div>
+
+              <div class="quad-match-card">
+                <div class="quad-match-header">
+                  <span class="match-num">GAME #4</span>
+                  <span class="match-meta">P1: ________ P2: ________ &bull; Score: ___ - ___</span>
+                </div>
+                <div class="quad-svg-wrapper">${svg4}</div>
+              </div>
+            </div>
+
+            <footer class="sheet-footer">
+              <span class="watermark-text">Play free online with friends at playdotsandboxes.com &bull; Free Printable Template</span>
+              <span class="watermark-rules">Connect dots with lines &bull; 4th line captures box &bull; Bonus turn on capture</span>
+            </footer>
+          </div>
+        `;
+      }
+    }
+  });
+</script>
+
+<style>
+  /* Screen Presentation Styles */
+  .subpage-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .content-container {
+    width: 100%;
+    max-width: 960px;
+    padding: 1.5rem 1rem 3rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .article-card {
+    border-radius: var(--radius-lg);
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid var(--border-color);
+    padding: 2.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.5rem;
+  }
+
+  .badge {
+    align-self: flex-start;
+    padding: 4px 12px;
+    background: var(--player1-bg);
+    color: var(--player1-color);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .page-title {
+    font-size: 2.15rem;
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--text-main);
+    letter-spacing: -0.75px;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  /* Play Online Banner */
+  .play-online-cta-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-glow);
+    border-radius: var(--radius-md);
+  }
+
+  .cta-text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .cta-emoji {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .cta-text strong {
+    display: block;
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .cta-text p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 2px 0 0 0;
+  }
+
+  .cta-btn {
+    white-space: nowrap;
+    padding: 10px 20px;
+    font-weight: 700;
+  }
+
+  /* Generator Toolbar */
+  .generator-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+  }
+
+  .toolbar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .control-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.2px;
+  }
+
+  .btn-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 14px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: var(--transition-fast);
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .tool-btn strong {
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+
+  .tool-btn small {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+
+  .tool-btn:hover {
+    background: var(--bg-surface-hover);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+  }
+
+  .tool-btn.active {
+    background: var(--player1-bg);
+    border-color: var(--player1-color);
+    color: #ffffff;
+    box-shadow: 0 0 12px var(--player1-glow);
+  }
+
+  .tool-btn.active strong {
+    color: var(--player1-color);
+  }
+
+  .tool-btn.active small {
+    color: #e0f2fe;
+  }
+
+  .toolbar-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .btn-print {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35);
+    transition: var(--transition-fast);
+    cursor: pointer;
+  }
+
+  .btn-print:hover {
+    background: linear-gradient(135deg, #0369a1, #075985);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+  }
+
+  .print-hint {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Paper Preview Container */
+  .printable-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .preview-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .preview-badge {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: var(--player1-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .printable-sheet-wrapper {
+    width: 100%;
+    background: #0b0f19;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+  }
+
+  /* White Sheet (Represents standard A4 / Letter paper on screen) */
+  .printable-sheet {
+    background: #ffffff;
+    color: #111827;
+    width: 100%;
+    max-width: 680px;
+    min-height: 850px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    padding: 36px 38px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .sheet-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  /* Sheet Header Styles */
+  .sheet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 14px;
+    gap: 16px;
+  }
+
+  .header-branding {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sheet-title {
+    font-size: 1.65rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: #111827;
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .sheet-grid-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0;
+  }
+
+  .sheet-meta-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #1f2937;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 16px;
+    white-space: nowrap;
+  }
+
+  /* SVG Board Container */
+  .sheet-grid-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 10px;
+    min-height: 540px;
+  }
+
+  .printable-svg {
+    max-width: 520px;
+    max-height: 520px;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Sheet Footer */
+  .sheet-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #d1d5db;
+    padding-top: 12px;
+    font-size: 0.75rem;
+    color: #6b7280;
+    gap: 8px;
+  }
+
+  .watermark-text {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .watermark-rules {
+    text-align: right;
+    font-style: italic;
+  }
+
+  /* Quad Layout (4 grids per page) */
+  .sheet-header-quad {
+    text-align: center;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+
+  .sheet-title-quad {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #111827;
+    margin: 0 0 2px 0;
+  }
+
+  .sheet-grid-badge-quad {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0;
+  }
+
+  .quad-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px;
+    flex: 1;
+    margin-bottom: 12px;
+  }
+
+  .quad-match-card {
+    border: 1px solid #9ca3af;
+    border-radius: 6px;
+    padding: 8px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+  }
+
+  .quad-match-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed #d1d5db;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+  }
+
+  .match-num {
+    font-weight: 800;
+    color: #111827;
+  }
+
+  .match-meta {
+    color: #4b5563;
+  }
+
+  .quad-svg-wrapper {
+    width: 100%;
+    max-width: 230px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Guide and Content Section Styles */
+  .rules-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .rules-section h2 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.4px;
+  }
+
+  .rules-section p {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: #cbd5e1;
+  }
+
+  .numbered-list {
+    margin-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .numbered-list li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 0.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+    background: rgba(15, 23, 42, 0.4);
+  }
+
+  .rules-table th {
+    background: rgba(30, 41, 59, 0.9);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .rules-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+  }
+
+  .rules-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .feature-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .feat-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--player1-color);
+    text-transform: uppercase;
+  }
+
+  .feature-item h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .feature-item p {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .faq-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    background: rgba(15, 23, 42, 0.4);
+    transition: var(--transition-fast);
+  }
+
+  .faq-item[open] {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .faq-item summary {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+  }
+
+  .faq-item summary:hover {
+    color: var(--player1-color);
+  }
+
+  .faq-item p {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+
+  .cta-banner {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .cta-banner h3 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  .cta-banner p {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 640px) {
+    .article-card {
+      padding: 1.5rem 1rem;
+    }
+
+    .page-title {
+      font-size: 1.7rem;
+    }
+
+    .play-online-cta-banner {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .cta-btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-group {
+      grid-template-columns: 1fr;
+    }
+
+    .printable-sheet-wrapper {
+      padding: 10px;
+    }
+
+    .printable-sheet {
+      padding: 20px 14px;
+      min-height: auto;
+    }
+
+    .sheet-title {
+      font-size: 1.35rem;
+    }
+
+    .sheet-meta-box {
+      font-size: 0.72rem;
+    }
+
+    .meta-row {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .quad-grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ==========================================================================
+     @media print - High-Quality Pure Clean Printable Output
+     ========================================================================== */
+  @media print {
+    /* Hide all website chrome, navbars, footers, sidebars, buttons, and SEO text */
+    .no-print,
+    .subpage-navbar,
+    .site-footer,
+    header,
+    footer:not(.sheet-footer),
+    .generator-toolbar,
+    .preview-header-bar,
+    .article-card,
+    #open-stats-btn,
+    #open-tutorial-btn,
+    #sound-toggle-btn {
+      display: none !important;
+    }
+
+    /* Reset HTML & Body for printing */
+    html, body {
+      background: #ffffff !important;
+      color: #000000 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body::before {
+      display: none !important;
+    }
+
+    .subpage-wrapper,
+    .content-container,
+    .printable-section,
+    .printable-sheet-wrapper {
+      background: #ffffff !important;
+      border: none !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    /* Format Sheet to fit perfectly on A4 / Letter portrait */
+    .printable-sheet {
+      background: #ffffff !important;
+      color: #000000 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      margin: 0 auto !important;
+      padding: 6mm 8mm !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-height: 96vh !important;
+      box-sizing: border-box !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    .sheet-title,
+    .sheet-title-quad {
+      color: #000000 !important;
+    }
+
+    .sheet-header,
+    .sheet-header-quad {
+      border-bottom: 2px solid #000000 !important;
+    }
+
+    .sheet-footer {
+      border-top: 1px solid #999999 !important;
+      color: #444444 !important;
+    }
+
+    .watermark-text {
+      color: #000000 !important;
+      font-weight: 700 !important;
+    }
+
+    .quad-match-card {
+      border: 1px solid #666666 !important;
+    }
+
+    .quad-match-header {
+      border-bottom: 1px dashed #666666 !important;
+    }
+
+    /* Print page configuration */
+    @page {
+      size: portrait;
+      margin: 8mm;
+    }
+  }
+</style>
+

@@ -1,6 +1,6 @@
 ---
 interface Props {
-  activePage?: 'about' | 'contact' | 'privacy' | 'terms' | 'how-to-play' | 'rules' | 'strategy' | 'faq';
+  activePage?: 'about' | 'contact' | 'privacy' | 'terms' | 'how-to-play' | 'rules' | 'strategy' | 'faq' | 'printable';
 }
 
 const { activePage } = Astro.props;
@@ -29,6 +29,7 @@ const { activePage } = Astro.props;
 
     <nav class="nav-links" aria-label="Site Navigation">
       <a href="/" class="nav-link">🎮 Play</a>
+      <a href="/printable" class={`nav-link ${activePage === 'printable' ? 'active' : ''}`}>Printable</a>
       <a href="/how-to-play" class={`nav-link ${activePage === 'how-to-play' ? 'active' : ''}`}>How to Play</a>
       <a href="/rules" class={`nav-link ${activePage === 'rules' ? 'active' : ''}`}>Rules</a>
       <a href="/strategy" class={`nav-link ${activePage === 'strategy' ? 'active' : ''}`}>Strategy</a>
