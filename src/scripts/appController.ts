@@ -3,6 +3,7 @@ import { getAiMove } from './aiEngine';
 import { audioEngine } from './audioEngine';
 import { loadStats, recordGameResult, resetStats } from './statsEngine';
 import { launchConfetti } from './confetti';
+import { onlineManager, type OnlineStatus, type OnlineMoveData } from './onlineEngine';
 import type { GameConfig, GameState, Line, PlayerId } from './types';
 
 let state: GameState;
@@ -14,11 +15,63 @@ let aiTimeoutId: number | null = null;
 // confirmed via the Start button. vs Computer / Self Practice are always
 // considered "started" since they need no name entry.
 let matchStarted = true;
+let myOnlinePlayerId: 1 | 2 = 1;
 
 const PVP_P1_STORAGE_KEY = 'boxbattle_pvp_player1_name';
 const PVP_P2_STORAGE_KEY = 'boxbattle_pvp_player2_name';
 
-// ─── Helper ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getInitialGridSize(): number {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const gridParam = params.get('grid');
+    if (gridParam) {
+      const clean = gridParam.trim().toLowerCase();
+      // Handles '3x3', '4x4', '5x5', '6x6', '7x7' or '3', '4', '5', '6', '7'
+      const match = clean.match(/^([3-7])(?:x\1)?$/);
+      if (match) {
+        return parseInt(match[1], 10);
+      }
+      const num = parseInt(clean, 10);
+      if (num >= 3 && num <= 7) {
+        return num;
+      }
+    }
+  } catch {
+    // Ignore URL parse error
+  }
+  return 4; // default 4x4 Dots (3x3 Boxes)
+}
+
+function syncGridDropdownUI(size: number) {
+  const dropdown = document.getElementById('grid-size-dropdown');
+  const trigger = document.getElementById('grid-size-trigger');
+  const selectedText = trigger?.querySelector('.dropdown-selected-text') || dropdown?.querySelector('.dropdown-selected-text');
+  const hiddenInput = document.getElementById('grid-size-select') as HTMLInputElement | null;
+
+  // Options might be inside #grid-size-dropdown or portaled into document.body
+  const options = document.querySelectorAll<HTMLLIElement>('#grid-size-dropdown .dropdown-option, .dropdown-menu[aria-labelledby*="grid-size"] .dropdown-option');
+
+  let matchedLabel = `${size}x${size} Dots (${size - 1}x${size - 1} Boxes)`;
+
+  options.forEach(opt => {
+    const val = parseInt(opt.getAttribute('data-value') || '0', 10);
+    const isSelected = val === size;
+    opt.classList.toggle('selected', isSelected);
+    opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    if (isSelected && opt.textContent) {
+      matchedLabel = opt.textContent.trim();
+    }
+  });
+
+  if (selectedText) {
+    selectedText.textContent = matchedLabel;
+  }
+  if (hiddenInput) {
+    hiddenInput.value = `${size}`;
+  }
+}
 
 function abbr(name: string, fallback: string): string {
   const t = (name || '').trim();
@@ -41,29 +94,186 @@ function setStoredName(key: string, name: string): void {
   }
 }
 
+// ─── Online Multiplayer Handlers ─────────────────────────────────────────────
+
+function setupOnlineCallbacks() {
+  onlineManager.setCallbacks({
+    onStatusChange: (status: OnlineStatus, message?: string) => {
+      const statusDesc = document.getElementById('online-status-desc');
+      const statusBanner = document.getElementById('online-status-banner');
+      if (statusDesc && message) statusDesc.textContent = message;
+
+      if (statusBanner) {
+        statusBanner.className = `status-banner ${status}`;
+      }
+
+      if (status === 'connected') {
+        if (myOnlinePlayerId === 1) {
+          state.config.player2Name = 'Friend';
+        }
+        matchStarted = true;
+        renderScoreboard();
+        setTimeout(() => {
+          document.getElementById('online-modal')?.classList.remove('active');
+        }, 1200);
+        showShareToast('Friend connected! Match started 🚀');
+      } else if (status === 'disconnected') {
+        showShareToast('Friend disconnected 🔌');
+        renderScoreboard();
+      }
+    },
+    onInitReceived: (data) => {
+      state.config.gridSize = data.gridSize;
+      state.config.player1Name = data.hostName || 'Friend (Host)';
+      state.config.player2Name = 'You (Guest)';
+      myOnlinePlayerId = 2;
+      matchStarted = true;
+      syncGridDropdownUI(data.gridSize);
+      state = createInitialState(state.config);
+      renderAll();
+      document.getElementById('online-modal')?.classList.remove('active');
+      showShareToast('Connected to Host! Game started 🚀');
+    },
+    onMoveReceived: (move: OnlineMoveData) => {
+      const lineId = move.lineId || (move.orientation === 'horizontal' ? `h-${move.row}-${move.col}` : `v-${move.row}-${move.col}`);
+      executeMove(lineId);
+    },
+    onRestartReceived: () => {
+      state = createInitialState(state.config);
+      renderAll();
+      showShareToast('Game restarted by friend 🔄');
+    },
+    onGridChangeReceived: (gridSize) => {
+      state.config.gridSize = gridSize;
+      syncGridDropdownUI(gridSize);
+      state = createInitialState(state.config);
+      renderAll();
+      showShareToast(`Grid updated to ${gridSize}x${gridSize}`);
+    },
+  });
+}
+
+async function startOnlineHost() {
+  const modal = document.getElementById('online-modal');
+  modal?.classList.add('active');
+
+  const statusDesc = document.getElementById('online-status-desc');
+  const statusBanner = document.getElementById('online-status-banner');
+  if (statusDesc) statusDesc.textContent = 'Generating room code...';
+  if (statusBanner) statusBanner.className = 'status-banner waiting';
+
+  myOnlinePlayerId = 1;
+  matchStarted = false; // Starts when guest joins
+  state.config.mode = 'online';
+  state.config.player1Name = 'You (Host)';
+  state.config.player2Name = 'Waiting for Friend...';
+  state.config.timerEnabled = false;
+
+  const modeSelect = document.getElementById('mode-select') as HTMLSelectElement | null;
+  if (modeSelect) modeSelect.value = 'online';
+  const aiContainer = document.getElementById('ai-level-container');
+  if (aiContainer) aiContainer.style.display = 'none';
+
+  try {
+    const { roomCode, inviteUrl } = await onlineManager.startHosting(undefined, state.config.gridSize, state.config.player1Name);
+
+    const codeEl = document.getElementById('online-room-code-val');
+    const linkInput = document.getElementById('online-room-link-input') as HTMLInputElement | null;
+    const whatsappBtn = document.getElementById('whatsapp-share-btn') as HTMLAnchorElement | null;
+
+    if (codeEl) codeEl.textContent = roomCode;
+    if (linkInput) linkInput.value = inviteUrl;
+    if (whatsappBtn) {
+      whatsappBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent("Let's play Dots and Boxes together! Click to join my game: " + inviteUrl)}`;
+    }
+    if (statusDesc) statusDesc.textContent = 'Waiting for friend to join...';
+
+    // Update URL with ?room=CODE
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', roomCode);
+      window.history.replaceState({}, '', url.toString());
+    } catch {}
+
+    state = createInitialState(state.config);
+    renderAll();
+  } catch (err) {
+    console.error('Failed to host online room:', err);
+    if (statusDesc) statusDesc.textContent = 'Error creating room. Please try again.';
+    if (statusBanner) statusBanner.className = 'status-banner error';
+  }
+}
+
+async function joinOnlineRoom(roomCode: string) {
+  const modal = document.getElementById('online-modal');
+  modal?.classList.add('active');
+
+  const code = roomCode.trim().toUpperCase();
+  const codeEl = document.getElementById('online-room-code-val');
+  const linkInput = document.getElementById('online-room-link-input') as HTMLInputElement | null;
+  const statusDesc = document.getElementById('online-status-desc');
+  const statusBanner = document.getElementById('online-status-banner');
+
+  if (codeEl) codeEl.textContent = code;
+  if (linkInput) linkInput.value = onlineManager.getInviteUrl(code);
+  if (statusDesc) statusDesc.textContent = `Connecting to room ${code}...`;
+  if (statusBanner) statusBanner.className = 'status-banner waiting';
+
+  myOnlinePlayerId = 2;
+  matchStarted = false; // Becomes true on handshake
+  state.config.mode = 'online';
+  state.config.player1Name = 'Host';
+  state.config.player2Name = 'You (Guest)';
+  state.config.timerEnabled = false;
+
+  const modeSelect = document.getElementById('mode-select') as HTMLSelectElement | null;
+  if (modeSelect) modeSelect.value = 'online';
+  const aiContainer = document.getElementById('ai-level-container');
+  if (aiContainer) aiContainer.style.display = 'none';
+
+  try {
+    await onlineManager.joinRoom(code);
+    if (statusDesc) statusDesc.textContent = 'Connected! Handshaking with host...';
+    if (statusBanner) statusBanner.className = 'status-banner connected';
+  } catch (err: any) {
+    console.error('Failed to join room:', err);
+    if (statusDesc) statusDesc.textContent = 'Room not found or host disconnected.';
+    if (statusBanner) statusBanner.className = 'status-banner error';
+  }
+}
+
 // ─── Init ────────────────────────────────────────────────────────────────────
 
 export function initApp() {
-  // vs Computer is the default mode: no name entry needed at all, the
-  // board is playable the instant the page loads.
+  const initialGridSize = getInitialGridSize();
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = params.get('room');
+
+  // vs Computer is the default mode; if ?room=XXXXX is present, start in online mode as Guest
   const defaultConfig: GameConfig = {
-    gridSize: 4,
-    mode: 'pve',
+    gridSize: initialGridSize,
+    mode: roomParam ? 'online' : 'pve',
     aiDifficulty: 'medium',
-    player1Name: 'You',
-    player2Name: 'Computer',
+    player1Name: roomParam ? 'Host' : 'You',
+    player2Name: roomParam ? 'You (Guest)' : 'Computer',
     theme: 'default',
     soundEnabled: true,
-    timerEnabled: true,
+    timerEnabled: !roomParam,
     timerDuration: 15,
   };
 
   state = createInitialState(defaultConfig);
-  matchStarted = true;
+  matchStarted = !roomParam;
 
   setupEventListeners();
+  setupOnlineCallbacks();
+  syncGridDropdownUI(initialGridSize);
   applyTheme(defaultConfig.theme);
   renderAll();
+
+  if (roomParam) {
+    joinOnlineRoom(roomParam);
+  }
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
@@ -208,6 +418,26 @@ function handleUserMove(lineId: string) {
   if (state.isGameOver) return;
   if (!matchStarted) return; // 2-Player match hasn't been confirmed yet
   if (state.config.mode === 'pve' && state.currentPlayer === 2) return;
+
+  if (state.config.mode === 'online') {
+    if (!onlineManager.isConnected()) {
+      showShareToast('Waiting for friend to connect... ⏳');
+      return;
+    }
+    if (state.currentPlayer !== myOnlinePlayerId) {
+      showShareToast("It's your friend's turn! ⏳");
+      return;
+    }
+    // Parse coordinates { row, col, orientation } from lineId (e.g. "h-1-2" or "v-0-3")
+    const parts = lineId.split('-');
+    const orientation = parts[0] === 'h' ? 'horizontal' : 'vertical';
+    const row = parseInt(parts[1], 10);
+    const col = parseInt(parts[2], 10);
+
+    // Send move to peer via WebRTC
+    onlineManager.sendMove(row, col, orientation, lineId);
+  }
+
   executeMove(lineId);
 }
 
@@ -276,24 +506,67 @@ function renderScoreboard() {
   if (p1Score) p1Score.textContent = `${state.scores[1]}`;
   if (p2Score) p2Score.textContent = `${state.scores[2]}`;
 
+  const isOnline = state.config.mode === 'online';
+  const isHuman2 = state.config.mode === 'pvp' || state.config.mode === 'sandbox' || isOnline;
+
   if (p1Name && document.activeElement !== p1Name) {
-    p1Name.textContent = state.config.player1Name;
+    if (isOnline) {
+      p1Name.textContent = myOnlinePlayerId === 1 ? 'You (Host)' : (state.config.player1Name || 'Host');
+    } else {
+      p1Name.textContent = state.config.player1Name;
+    }
   }
 
-  const isHuman2 = state.config.mode === 'pvp' || state.config.mode === 'sandbox';
   if (p2Name) {
-    p2Name.textContent = isHuman2 ? state.config.player2Name : 'Computer';
+    if (isOnline) {
+      if (myOnlinePlayerId === 2) {
+        p2Name.textContent = 'You (Guest)';
+      } else {
+        p2Name.textContent = onlineManager.isConnected() ? (state.config.player2Name || 'Friend') : 'Waiting for Friend...';
+      }
+    } else {
+      p2Name.textContent = isHuman2 ? state.config.player2Name : 'Computer';
+    }
   }
 
-  if (p1Avatar) p1Avatar.textContent = abbr(state.config.player1Name, 'P1');
+  if (p1Avatar) {
+    p1Avatar.textContent = isOnline
+      ? (myOnlinePlayerId === 1 ? 'YOU' : 'HST')
+      : abbr(state.config.player1Name, 'P1');
+  }
+
   if (p2Avatar) {
-    p2Avatar.textContent = state.config.mode === 'pve'
-      ? 'CMP'
-      : abbr(state.config.player2Name, 'P2');
+    if (isOnline) {
+      p2Avatar.textContent = myOnlinePlayerId === 2 ? 'YOU' : 'FRD';
+    } else {
+      p2Avatar.textContent = state.config.mode === 'pve'
+        ? 'CMP'
+        : abbr(state.config.player2Name, 'P2');
+    }
   }
 
   if (statusMsg) {
-    if (!matchStarted) {
+    if (isOnline) {
+      if (!onlineManager.isConnected()) {
+        statusMsg.textContent = myOnlinePlayerId === 1
+          ? 'Waiting for friend to join... ⏳'
+          : 'Connecting to host... ⏳';
+      } else if (state.isGameOver) {
+        if (state.winner === myOnlinePlayerId) {
+          statusMsg.textContent = 'You Won! 🎉🏆';
+        } else if (!state.winner) {
+          statusMsg.textContent = "It's a Tie! 🤝";
+        } else {
+          statusMsg.textContent = 'Friend Won! 🏆';
+        }
+      } else {
+        if (state.currentPlayer === myOnlinePlayerId) {
+          statusMsg.textContent = 'Your Turn! ⚡';
+        } else {
+          statusMsg.textContent = "Friend's Turn... ⏳";
+        }
+      }
+    } else if (!matchStarted) {
       statusMsg.textContent = 'Enter names to start the match ⬆️';
     } else if (state.isGameOver) {
       if (state.winner === 1) statusMsg.textContent = `${state.config.player1Name} Wins! 🎉`;
@@ -328,8 +601,9 @@ function renderScoreboard() {
 function renderControls() {
   const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
   const redoBtn = document.getElementById('redo-btn') as HTMLButtonElement;
-  if (undoBtn) undoBtn.disabled = state.history.length === 0 || state.isGameOver;
-  if (redoBtn) redoBtn.disabled = state.redoStack.length === 0 || state.isGameOver;
+  const isOnline = state.config.mode === 'online';
+  if (undoBtn) undoBtn.disabled = isOnline || state.history.length === 0 || state.isGameOver;
+  if (redoBtn) redoBtn.disabled = isOnline || state.redoStack.length === 0 || state.isGameOver;
 }
 
 // ─── Timer ───────────────────────────────────────────────────────────────────
@@ -394,16 +668,30 @@ function showVictoryModal() {
 
   if (!modal) return;
 
-  const p2Label = state.config.mode === 'pve' ? 'Computer' : state.config.player2Name;
-  if (p1NameEl) p1NameEl.textContent = state.config.player1Name;
+  const isOnline = state.config.mode === 'online';
+  let p1Label = state.config.player1Name;
+  let p2Label = state.config.mode === 'pve' ? 'Computer' : state.config.player2Name;
+
+  if (isOnline) {
+    p1Label = myOnlinePlayerId === 1 ? 'You (Host)' : (state.config.player1Name || 'Host');
+    p2Label = myOnlinePlayerId === 2 ? 'You (Guest)' : (state.config.player2Name || 'Friend');
+  }
+
+  if (p1NameEl) p1NameEl.textContent = p1Label;
   if (p2NameEl) p2NameEl.textContent = p2Label;
   if (p1ScoreEl) p1ScoreEl.textContent = `${state.scores[1]}`;
   if (p2ScoreEl) p2ScoreEl.textContent = `${state.scores[2]}`;
 
   if (title) {
-    if (state.winner === 1) title.textContent = `${state.config.player1Name.toUpperCase()} VICTORY! 🎉`;
-    else if (state.winner === 2) title.textContent = `${p2Label.toUpperCase()} VICTORY! 🎉`;
-    else title.textContent = 'DRAW MATCH! 🤝';
+    if (isOnline) {
+      if (state.winner === myOnlinePlayerId) title.textContent = 'YOU WON! 🎉🏆';
+      else if (state.winner) title.textContent = 'FRIEND WON! 🏆';
+      else title.textContent = 'DRAW MATCH! 🤝';
+    } else {
+      if (state.winner === 1) title.textContent = `${state.config.player1Name.toUpperCase()} VICTORY! 🎉`;
+      else if (state.winner === 2) title.textContent = `${p2Label.toUpperCase()} VICTORY! 🎉`;
+      else title.textContent = 'DRAW MATCH! 🤝';
+    }
   }
   if (subtitle) subtitle.textContent = `Final Score: ${state.scores[1]} vs ${state.scores[2]}`;
 
@@ -461,7 +749,14 @@ function setupEventListeners() {
   // New Game Button
   document.getElementById('new-game-btn')?.addEventListener('click', () => {
     audioEngine.playButtonClick();
-    if (state.config.mode === 'pvp') {
+    if (state.config.mode === 'online') {
+      if (onlineManager.isConnected()) {
+        onlineManager.sendRestart();
+      }
+      state = createInitialState(state.config);
+      renderAll();
+      showShareToast('Match restarted 🔄');
+    } else if (state.config.mode === 'pvp') {
       // Reset back to the pre-match state and ask for names again
       matchStarted = false;
       state = createInitialState(state.config);
@@ -499,12 +794,25 @@ function setupEventListeners() {
   const modeSelect = document.getElementById('mode-select') as HTMLSelectElement;
   modeSelect?.addEventListener('change', (e) => {
     const newMode = (e.target as HTMLSelectElement).value as any;
+
+    if (state.config.mode === 'online' && newMode !== 'online') {
+      onlineManager.cleanup();
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('room');
+        window.history.replaceState({}, '', url.toString());
+      } catch {}
+    }
+
     state.config.mode = newMode;
 
     const aiContainer = document.getElementById('ai-level-container');
     if (aiContainer) aiContainer.style.display = newMode === 'pve' ? 'flex' : 'none';
 
-    if (newMode === 'pvp') {
+    if (newMode === 'online') {
+      closePlayerNamesPanel();
+      startOnlineHost();
+    } else if (newMode === 'pvp') {
       // Lock the board and ask for both names before the match begins
       matchStarted = false;
       closePlayerNamesPanel();
@@ -636,8 +944,20 @@ function setupCustomDropdowns() {
           const newSize = parseInt(value, 10);
           if (state.config.gridSize !== newSize) {
             state.config.gridSize = newSize;
+            if (state.config.mode === 'online' && onlineManager.isHost()) {
+              onlineManager.sendGridChange(newSize);
+            }
             state = createInitialState(state.config);
             renderAll();
+
+            // Update URL ?grid= parameter for bookmarking and shareability
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.set('grid', `${newSize}x${newSize}`);
+              window.history.replaceState({}, '', url.toString());
+            } catch {
+              // Ignore history error
+            }
           }
         } else if (dropdownType === 'ai-level') {
           state.config.aiDifficulty = value as any;
@@ -760,26 +1080,37 @@ function setupModalListeners() {
   // Share Result button (Victory Modal)
   document.getElementById('share-result-btn')?.addEventListener('click', async () => {
     const p2Label = state.config.mode === 'pve' ? 'Computer' : state.config.player2Name;
-    const text = `I beat ${p2Label} ${state.scores[1]}-${state.scores[2]} in BoxBattle! Play at playdotsandboxes.com`;
+    const winnerName = state.winner === 1
+      ? state.config.player1Name
+      : (state.winner === 2 ? p2Label : 'Nobody');
 
-    if (navigator.share) {
+    const winnerLine = state.winner
+      ? `🏆 ${winnerName} Won! (${state.scores[1]} - ${state.scores[2]})`
+      : `🤝 Draw Match! (${state.scores[1]} - ${state.scores[2]})`;
+
+    const gridSizeText = `${state.config.gridSize}x${state.config.gridSize} (${state.config.gridSize - 1}x${state.config.gridSize - 1} Boxes)`;
+
+    const shareText = `🟦🟥 Dots and Boxes (BoxBattle)
+${winnerLine}
+📏 Grid: ${gridSizeText}
+⚔️ Can you beat my score? Play free: https://playdotsandboxes.com/`;
+
+    const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent) ||
+      (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+    if (isMobile && typeof navigator.share === 'function') {
       try {
-        await navigator.share({ text, url: 'https://playdotsandboxes.com' });
-      } catch {
-        // User cancelled the share sheet — nothing to do
+        await navigator.share({
+          title: 'Dots and Boxes (BoxBattle)',
+          text: shareText,
+        });
+      } catch (err: any) {
+        if (err && err.name !== 'AbortError') {
+          await copyToClipboard(shareText);
+        }
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        const btn = document.getElementById('share-result-btn');
-        if (btn) {
-          const original = btn.innerHTML;
-          btn.innerHTML = 'Copied! ✅';
-          setTimeout(() => { btn.innerHTML = original; }, 1800);
-        }
-      } catch {
-        // Clipboard unavailable — fail silently
-      }
+      await copyToClipboard(shareText);
     }
   });
 
@@ -801,14 +1132,113 @@ function setupModalListeners() {
     updateStatsDisplay();
   });
 
+  // Online Multiplayer Modal
+  const onlineModal = document.getElementById('online-modal');
+  document.getElementById('online-match-btn')?.addEventListener('click', () => {
+    audioEngine.playButtonClick();
+    startOnlineHost();
+  });
+
+  document.getElementById('close-online-btn')?.addEventListener('click', () => {
+    onlineModal?.classList.remove('active');
+  });
+
+  onlineModal?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).id === 'online-modal') {
+      onlineModal?.classList.remove('active');
+    }
+  });
+
+  document.getElementById('copy-online-link-btn')?.addEventListener('click', async () => {
+    const linkInput = document.getElementById('online-room-link-input') as HTMLInputElement | null;
+    if (linkInput && linkInput.value) {
+      await copyToClipboard(linkInput.value);
+      const textSpan = document.getElementById('copy-link-text');
+      if (textSpan) {
+        const orig = textSpan.textContent;
+        textSpan.textContent = 'Copied! ✅';
+        setTimeout(() => {
+          textSpan.textContent = orig || 'Copy Invite Link';
+        }, 2000);
+      }
+    }
+  });
+
+  const manualJoinInput = document.getElementById('manual-room-input') as HTMLInputElement | null;
+  const triggerManualJoin = () => {
+    const code = manualJoinInput?.value.trim();
+    if (code) {
+      joinOnlineRoom(code);
+    } else {
+      showShareToast('Please enter a room code');
+    }
+  };
+  document.getElementById('manual-join-btn')?.addEventListener('click', triggerManualJoin);
+  manualJoinInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') triggerManualJoin();
+  });
+
   // Victory Modal
   const vicModal = document.getElementById('victory-modal');
   document.getElementById('close-victory-btn')?.addEventListener('click', () => vicModal?.classList.remove('active'));
   document.getElementById('rematch-btn')?.addEventListener('click', () => {
     vicModal?.classList.remove('active');
+    if (state.config.mode === 'online' && onlineManager.isConnected()) {
+      onlineManager.sendRestart();
+    }
     state = createInitialState(state.config);
     renderAll();
   });
+}
+
+async function copyToClipboard(text: string) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    showShareToast('Copied to clipboard! 📋');
+
+    const btn = document.getElementById('share-result-btn');
+    if (btn) {
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Copied!</span>
+      `;
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+      }, 2000);
+    }
+  } catch {
+    showShareToast('Unable to copy automatically');
+  }
+}
+
+function showShareToast(message: string = 'Copied to clipboard! 📋') {
+  const toast = document.getElementById('share-toast');
+  if (!toast) return;
+  const span = toast.querySelector('span');
+  if (span) span.textContent = message;
+  toast.classList.remove('hidden');
+  void toast.offsetWidth; // trigger reflow
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.classList.add('hidden'), 300);
+  }, 2200);
 }
 
 // ─── Stats Display ───────────────────────────────────────────────────────────

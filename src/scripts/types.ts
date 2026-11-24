@@ -40,7 +40,7 @@ export interface Move {
   timestamp: number;
 }
 
-export type GameMode = 'pvp' | 'pve' | 'eve' | 'sandbox';
+export type GameMode = 'pvp' | 'pve' | 'eve' | 'sandbox' | 'online';
 export type ThemeId = 'default' | 'cyberpunk' | 'geist' | 'arcade' | 'emerald';
 
 export interface GameConfig {

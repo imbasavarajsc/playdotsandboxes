@@ -10,6 +10,15 @@
       <span>New Game</span>
     </button>
 
+    <button id="online-match-btn" class="btn btn-online" type="button" aria-label="Play Online with a Friend" title="Play Online with a Friend (Share Link)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+      <span>🌐 Play Online</span>
+    </button>
+
     <button id="undo-btn" class="btn" title="Undo Last Move" type="button" aria-label="Undo Move">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="9 14 4 9 9 4"></polyline>
@@ -47,7 +56,7 @@
     <div class="control-group option-selectors">
       <!-- Grid Size Selector -->
       <div class="setting-item">
-        <span class="setting-label" id="grid-size-label">Grid Size</span>
+        <span class="setting-label" id="grid-size-label">Grid Size (Dots &amp; Boxes)</span>
         <div class="custom-dropdown" id="grid-size-dropdown" data-dropdown="grid-size">
           <button
             type="button"
@@ -57,17 +66,17 @@
             aria-expanded="false"
             aria-labelledby="grid-size-label grid-size-trigger"
           >
-            <span class="dropdown-selected-text">4x4 (3x3 Boxes)</span>
+            <span class="dropdown-selected-text">4x4 Dots (3x3 Boxes)</span>
             <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
           <ul class="dropdown-menu" role="listbox" aria-labelledby="grid-size-label" tabindex="-1">
-            <li class="dropdown-option" role="option" data-value="3" aria-selected="false">3x3 (2x2 Boxes)</li>
-            <li class="dropdown-option selected" role="option" data-value="4" aria-selected="true">4x4 (3x3 Boxes)</li>
-            <li class="dropdown-option" role="option" data-value="5" aria-selected="false">5x5 (4x4 Boxes)</li>
-            <li class="dropdown-option" role="option" data-value="6" aria-selected="false">6x6 (5x5 Boxes)</li>
-            <li class="dropdown-option" role="option" data-value="7" aria-selected="false">7x7 (6x6 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="3" aria-selected="false">3x3 Dots (2x2 Boxes)</li>
+            <li class="dropdown-option selected" role="option" data-value="4" aria-selected="true">4x4 Dots (3x3 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="5" aria-selected="false">5x5 Dots (4x4 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="6" aria-selected="false">6x6 Dots (5x5 Boxes)</li>
+            <li class="dropdown-option" role="option" data-value="7" aria-selected="false">7x7 Dots (6x6 Boxes)</li>
           </ul>
           <input type="hidden" id="grid-size-select" value="4" />
         </div>
@@ -152,6 +161,20 @@
     display: flex;
     gap: 12px;
     justify-content: center;
+  }
+
+  .btn-online {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.35);
+    color: var(--player1-color);
+    font-weight: 700;
+  }
+
+  .btn-online:hover {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: var(--player1-color);
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
   }
 
   /* Game Settings Accordion */
