@@ -83,17 +83,25 @@
     transition: all var(--transition-bounce);
     position: relative;
     overflow: hidden;
+    /* Inactive player gets subtly dimmed */
+    opacity: 0.52;
+    filter: saturate(0.6);
+  }
+
+  .player-card.active-turn {
+    opacity: 1;
+    filter: saturate(1);
   }
 
   .player-card.active-turn.p1 {
     border-color: var(--player1-color);
-    box-shadow: 0 0 20px var(--player1-glow);
+    box-shadow: 0 0 24px var(--player1-glow), 0 0 6px var(--player1-glow) inset;
     background: var(--player1-bg);
   }
 
   .player-card.active-turn.p2 {
     border-color: var(--player2-color);
-    box-shadow: 0 0 20px var(--player2-glow);
+    box-shadow: 0 0 24px var(--player2-glow), 0 0 6px var(--player2-glow) inset;
     background: var(--player2-bg);
   }
 

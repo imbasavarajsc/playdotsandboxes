@@ -1,7 +1,7 @@
 /* Global Styles & Natural Eye-Comfortable Theme for BoxBattle */
 :root {
-  /* Eye-Comfortable Modern Slate Palette */
-  --bg-primary: #0f172a; /* Deep slate navy - easy on the eyes */
+  /* Eye-Comfortable Modern Slate Palette (default = "neon-dark") */
+  --bg-primary: #0f172a;
   --bg-surface: #1e293b;
   --bg-surface-hover: #334155;
   --bg-glass: rgba(30, 41, 59, 0.85);
@@ -23,11 +23,16 @@
 
   --accent-gold: #f59e0b;
   --accent-green: #10b981;
-  
+
+
   --dot-color: #475569;
   --dot-active: #f8fafc;
   --line-empty: rgba(255, 255, 255, 0.08);
   --line-hover: rgba(56, 189, 248, 0.35);
+
+  /* Board notebook variables (unused in default theme) */
+  --board-bg: transparent;
+  --board-line-paper: transparent;
 
   --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -45,7 +50,114 @@
   --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-*, *::before, *::after {
+/* ── Neon Dark Theme (explicit, same as default) ─────────────────────── */
+[data-theme="neon"] {
+  --bg-primary: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-hover: #334155;
+  --bg-glass: rgba(30, 41, 59, 0.85);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(56, 189, 248, 0.3);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --player1-color: #38bdf8;
+  --player1-glow: rgba(56, 189, 248, 0.5);
+  --player1-bg: rgba(56, 189, 248, 0.14);
+  --player2-color: #f472b6;
+  --player2-glow: rgba(244, 114, 182, 0.5);
+  --player2-bg: rgba(244, 114, 182, 0.14);
+  --dot-color: #475569;
+  --dot-active: #f8fafc;
+  --line-empty: rgba(255, 255, 255, 0.08);
+  --line-hover: rgba(56, 189, 248, 0.45);
+  --board-bg: transparent;
+  --board-line-paper: transparent;
+}
+
+/* ── Notebook Paper Theme ────────────────────────────────────────────── */
+[data-theme="notebook"] {
+  --bg-primary: #f5f0e8;
+  --bg-surface: #faf8f2;
+  --bg-surface-hover: #ede9dc;
+  --bg-glass: rgba(250, 248, 242, 0.95);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-glow: rgba(37, 99, 235, 0.35);
+  --text-main: #1e1b18;
+  --text-muted: #4b5563;
+  --text-faint: #9ca3af;
+  --player1-color: #1d4ed8;
+  /* classic blue ink */
+  --player1-glow: rgba(29, 78, 216, 0.3);
+  --player1-bg: rgba(29, 78, 216, 0.08);
+  --player2-color: #dc2626;
+  /* classic red ink */
+  --player2-glow: rgba(220, 38, 38, 0.3);
+  --player2-bg: rgba(220, 38, 38, 0.08);
+  --accent-gold: #b45309;
+  --dot-color: #374151;
+  --dot-active: #111827;
+  --line-empty: rgba(0, 0, 0, 0.12);
+  --line-hover: rgba(29, 78, 216, 0.4);
+  /* Notebook ruled-paper grid background */
+  --board-bg: #fdfaf3;
+  --board-line-paper: rgba(173, 216, 230, 0.55);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Force light body bg for notebook theme */
+[data-theme="notebook"] body {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="notebook"] body::before {
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(29, 78, 216, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(220, 38, 38, 0.06) 0%, transparent 50%);
+}
+
+/* ── Minimal Light Theme ─────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #e2e8f0;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --border-color: rgba(0, 0, 0, 0.09);
+  --border-glow: rgba(99, 102, 241, 0.3);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-faint: #94a3b8;
+  --player1-color: #4f46e5;
+  /* indigo */
+  --player1-glow: rgba(79, 70, 229, 0.3);
+  --player1-bg: rgba(79, 70, 229, 0.08);
+  --player2-color: #db2777;
+  /* pink */
+  --player2-glow: rgba(219, 39, 119, 0.3);
+  --player2-bg: rgba(219, 39, 119, 0.08);
+  --accent-gold: #d97706;
+  --dot-color: #94a3b8;
+  --dot-active: #0f172a;
+  --line-empty: rgba(0, 0, 0, 0.1);
+  --line-hover: rgba(79, 70, 229, 0.4);
+  --board-bg: transparent;
+  --board-line-paper: transparent;
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] body {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(79, 70, 229, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(219, 39, 119, 0.07) 0%, transparent 50%);
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -84,7 +196,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: 
+  background-image:
     radial-gradient(circle at 15% 15%, var(--player1-bg) 0%, transparent 45%),
     radial-gradient(circle at 85% 85%, var(--player2-bg) 0%, transparent 45%);
   transform: translateZ(0);
@@ -199,9 +311,11 @@ button {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--bg-surface-hover);
   border-radius: 4px;
@@ -250,13 +364,107 @@ button {
 }
 
 @keyframes popIn {
-  0% { transform: scale(0.85); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes lineDrawIn {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0.3;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes boxPopIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  65% {
+    transform: scale(1.12);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes comboToastIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px) scale(0.85);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px) scale(1.05);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes comboToastOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px) scale(0.9);
+  }
+}
+
+/* Combo chain toast */
+#combo-toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 80px;
+  z-index: 200;
+  pointer-events: none;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+#combo-toast.show {
+  animation: comboToastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+#combo-toast.hide {
+  animation: comboToastOut 0.3s ease forwards;
 }
 
 /* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

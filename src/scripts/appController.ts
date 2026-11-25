@@ -10,6 +10,12 @@ let state: GameState;
 let timerInterval: number | null = null;
 let aiTimeoutId: number | null = null;
 
+// Track boxes that have already played the pop animation so we don't replay on re-renders
+const poppedBoxes = new Set<string>();
+
+// Combo-toast timeout handle
+let comboToastTimeout: number | null = null;
+
 // Whether the current match is actually playable yet. Only relevant for
 // 2-Player mode, where the board stays locked until both names are
 // confirmed via the Start button. vs Computer / Self Practice are always
@@ -193,7 +199,7 @@ async function startOnlineHost() {
       const url = new URL(window.location.href);
       url.searchParams.set('room', roomCode);
       window.history.replaceState({}, '', url.toString());
-    } catch {}
+    } catch { }
 
     state = createInitialState(state.config);
     renderAll();
@@ -269,11 +275,48 @@ export function initApp() {
   setupOnlineCallbacks();
   syncGridDropdownUI(initialGridSize);
   applyTheme(defaultConfig.theme);
+
+  // Restore persisted theme and mute state
+  try {
+    const savedTheme = localStorage.getItem('bb_theme') || 'neon';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  } catch { }
+  try {
+    const savedMuted = localStorage.getItem('bb_muted') === 'true';
+    audioEngine.setMuted(savedMuted);
+    document.getElementById('sound-icon-on')?.classList.toggle('hidden', savedMuted);
+    document.getElementById('sound-icon-off')?.classList.toggle('hidden', !savedMuted);
+  } catch { }
+
   renderAll();
 
   if (roomParam) {
     joinOnlineRoom(roomParam);
   }
+}
+
+// ─── Combo Toast ─────────────────────────────────────────────────────────────
+
+function showComboToast(streak: number) {
+  if (streak < 2) return;
+  const toast = document.getElementById('combo-toast');
+  if (!toast) return;
+
+  const emojis = ['', '', '🔥', '⚡', '💥', '🌟', '🏆'];
+  const emoji = emojis[Math.min(streak, emojis.length - 1)] || '🏆';
+  toast.textContent = `${emoji} ${streak}x Chain!`;
+
+  // Restart animation
+  toast.classList.remove('show', 'hide');
+  void (toast as HTMLElement).offsetWidth; // force reflow
+  toast.classList.add('show');
+
+  if (comboToastTimeout) clearTimeout(comboToastTimeout);
+  comboToastTimeout = window.setTimeout(() => {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+    comboToastTimeout = window.setTimeout(() => toast.classList.remove('hide'), 350);
+  }, 1600);
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
@@ -341,6 +384,19 @@ function renderBoard() {
             : abbr(state.config.player2Name, 'P2');
         }
         boxesGroup.appendChild(text);
+
+        // Pop animation for newly captured boxes
+        const boxKey = `${r}-${c}`;
+        if (!poppedBoxes.has(boxKey)) {
+          poppedBoxes.add(boxKey);
+          rect.classList.add('box-pop-in');
+          setTimeout(() => rect.classList.remove('box-pop-in'), 420);
+          // Fade-in label after pop animation
+          setTimeout(() => text.classList.add('label-visible'), 350);
+        } else {
+          // Already popped: show label immediately
+          text.classList.add('label-visible');
+        }
       }
     }
   }
@@ -388,11 +444,17 @@ function createSvgLine(group: HTMLElement, line: Line, x1: number, y1: number, x
   visLine.setAttribute('y2', `${y2}`);
 
   let classes = 'board-line';
-  if (!line.owner)       classes += ' empty';
+  if (!line.owner) classes += ' empty';
   else if (line.owner === 1) classes += ' claimed-p1';
-  else                   classes += ' claimed-p2';
-  if (line.isLastMove)   classes += ' last-move';
+  else classes += ' claimed-p2';
+  if (line.isLastMove) classes += ' last-move';
   visLine.setAttribute('class', classes);
+
+  // Animate newly drawn lines
+  if (line.isLastMove && line.owner) {
+    visLine.classList.add('line-draw-in');
+    setTimeout(() => visLine.classList.remove('line-draw-in'), 300);
+  }
 
   const hitLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   hitLine.setAttribute('x1', `${x1}`);
@@ -452,6 +514,11 @@ function executeMove(lineId: string) {
   }
 
   renderAll();
+
+  // Show combo toast for chain captures
+  if (boxesScored > 0 && state.streakCount >= 2) {
+    showComboToast(state.streakCount);
+  }
 
   if (state.isGameOver) {
     handleGameOver();
@@ -753,16 +820,19 @@ function setupEventListeners() {
       if (onlineManager.isConnected()) {
         onlineManager.sendRestart();
       }
+      poppedBoxes.clear();
       state = createInitialState(state.config);
       renderAll();
       showShareToast('Match restarted 🔄');
     } else if (state.config.mode === 'pvp') {
       // Reset back to the pre-match state and ask for names again
       matchStarted = false;
+      poppedBoxes.clear();
       state = createInitialState(state.config);
       renderAll();
       openPlayerNamesPanel();
     } else {
+      poppedBoxes.clear();
       state = createInitialState(state.config);
       renderAll();
     }
@@ -801,7 +871,7 @@ function setupEventListeners() {
         const url = new URL(window.location.href);
         url.searchParams.delete('room');
         window.history.replaceState({}, '', url.toString());
-      } catch {}
+      } catch { }
     }
 
     state.config.mode = newMode;
@@ -816,6 +886,7 @@ function setupEventListeners() {
       // Lock the board and ask for both names before the match begins
       matchStarted = false;
       closePlayerNamesPanel();
+      poppedBoxes.clear();
       state = createInitialState(state.config);
       renderAll();
       openPlayerNamesPanel();
@@ -830,6 +901,7 @@ function setupEventListeners() {
         state.config.player1Name = 'Player 1';
         state.config.player2Name = 'Player 2';
       }
+      poppedBoxes.clear();
       state = createInitialState(state.config);
       renderAll();
     }
@@ -845,6 +917,7 @@ function setupEventListeners() {
     audioEngine.setMuted(isMuted);
     document.getElementById('sound-icon-on')?.classList.toggle('hidden', isMuted);
     document.getElementById('sound-icon-off')?.classList.toggle('hidden', !isMuted);
+    try { localStorage.setItem('bb_muted', isMuted ? 'true' : 'false'); } catch { }
   });
 
   setupModalListeners();
@@ -994,7 +1067,7 @@ function setupCustomDropdowns() {
         const trigger = d.querySelector<HTMLButtonElement>('.dropdown-trigger');
         const dropdownType = d.getAttribute('data-dropdown');
         const menu = document.querySelector<HTMLUListElement>(`ul[aria-labelledby="${dropdownType}-label"]`) ||
-                     document.querySelector<HTMLUListElement>('.dropdown-menu.open');
+          document.querySelector<HTMLUListElement>('.dropdown-menu.open');
         if (trigger && menu) {
           const rect = trigger.getBoundingClientRect();
           menu.style.top = `${rect.bottom + 6}px`;
@@ -1010,7 +1083,7 @@ function setupCustomDropdowns() {
         const trigger = d.querySelector<HTMLButtonElement>('.dropdown-trigger');
         const dropdownType = d.getAttribute('data-dropdown');
         const menu = document.querySelector<HTMLUListElement>(`ul[aria-labelledby="${dropdownType}-label"]`) ||
-                     document.querySelector<HTMLUListElement>('.dropdown-menu.open');
+          document.querySelector<HTMLUListElement>('.dropdown-menu.open');
         if (trigger && menu) {
           const rect = trigger.getBoundingClientRect();
           menu.style.top = `${rect.bottom + 6}px`;

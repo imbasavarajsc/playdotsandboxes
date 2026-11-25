@@ -33,6 +33,13 @@
         </select>
       </div>
 
+      <!-- Theme Switcher -->
+      <div class="theme-switcher" id="theme-switcher" title="Switch Theme" aria-label="Switch Theme">
+        <button class="theme-btn" data-theme="neon"     aria-label="Neon Dark theme"     title="Neon Dark">🌌</button>
+        <button class="theme-btn" data-theme="notebook" aria-label="Notebook Paper theme" title="Notebook">📓</button>
+        <button class="theme-btn" data-theme="light"    aria-label="Minimal Light theme"  title="Minimal Light">☀️</button>
+      </div>
+
       <!-- Sound Toggle -->
       <button id="sound-toggle-btn" class="btn btn-icon" title="Toggle Sound" aria-label="Toggle Sound" type="button">
         <svg id="sound-icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -242,4 +249,71 @@
       font-size: 0.825rem;
     }
   }
+
+  /* ── Theme Switcher ─────────────────────────────────────────────────── */
+  .theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 4px;
+  }
+
+  .theme-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: calc(var(--radius-md) - 4px);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+    background: transparent;
+    border: none;
+    line-height: 1;
+  }
+
+  .theme-btn:hover {
+    background: var(--bg-surface-hover);
+    transform: scale(1.1);
+  }
+
+  .theme-btn.active {
+    background: var(--bg-surface-hover);
+    box-shadow: 0 0 0 2px var(--border-glow);
+  }
 </style>
+
+<script>
+  // ── Theme persistence ────────────────────────────────────────────────
+  (function () {
+    const saved = localStorage.getItem('bb_theme') || 'neon';
+    document.documentElement.setAttribute('data-theme', saved);
+    document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-theme') === saved);
+    });
+  })();
+
+  document.getElementById('theme-switcher')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.theme-btn');
+    if (!btn) return;
+    const theme = btn.getAttribute('data-theme') || 'neon';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('bb_theme', theme);
+    document.querySelectorAll<HTMLButtonElement>('.theme-btn').forEach(b => {
+      b.classList.toggle('active', b === btn);
+    });
+  });
+
+  // ── Sound mute persistence (restore icon on load) ────────────────────
+  (function () {
+    const muted = localStorage.getItem('bb_muted') === 'true';
+    if (muted) {
+      document.getElementById('sound-icon-on')?.classList.add('hidden');
+      document.getElementById('sound-icon-off')?.classList.remove('hidden');
+    }
+  })();
+</script>
